@@ -6,15 +6,15 @@
 //
 
 import Foundation
+import SwiftData
 
-struct Todo: Identifiable, Codable {
-    let id: UUID
+@Model
+class Todo {
     var title: String
     var isCompleted: Bool
-    let createdAt: Date
+    var createdAt: Date
 
     init(title: String) {
-        self.id = UUID()
         self.title = title
         self.isCompleted = false
         self.createdAt = Date()

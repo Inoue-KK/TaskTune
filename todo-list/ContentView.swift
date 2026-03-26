@@ -6,9 +6,11 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
-    @State private var todos: [Todo] = []
+    @Environment(\.modelContext) private var context
+    @Query(sort: \Todo.createdAt, order: .reverse) private var todos: [Todo]
     @State private var showingAddSheet = false
 
     private var pendingTodos: [Todo] { todos.filter { !$0.isCompleted } }
@@ -31,7 +33,7 @@ struct ContentView: View {
             .navigationBarTitleDisplayMode(.large)
         }
         .sheet(isPresented: $showingAddSheet) {
-            AddTodoView(todos: $todos)
+            AddTodoView()
                 .presentationDetents([.height(200)])
                 .presentationCornerRadius(20)
         }
@@ -50,7 +52,7 @@ struct ContentView: View {
                         deleteTodos(from: pendingTodos, at: indexSet)
                     }
                 } header: {
-                    sectionHeader("未完了", count: pendingTodos.count)
+                    sectionHeader("Pending", count: pendingTodos.count)
                 }
             }
 
@@ -63,18 +65,19 @@ struct ContentView: View {
                         deleteTodos(from: completedTodos, at: indexSet)
                     }
                 } header: {
-                    sectionHeader("完了", count: completedTodos.count)
+                    sectionHeader("Completed", count: completedTodos.count)
                 }
             }
         }
         .listStyle(.insetGrouped)
-        .scrollContentBackground(.visible)
     }
 
     private func todoRow(_ todo: Todo) -> some View {
         HStack(spacing: 14) {
             Button {
-                toggleTodo(todo)
+                withAnimation(.spring(duration: 0.3)) {
+                    todo.isCompleted.toggle()
+                }
             } label: {
                 Image(systemName: todo.isCompleted ? "checkmark.circle.fill" : "circle")
                     .font(.title3)
@@ -109,11 +112,11 @@ struct ContentView: View {
             Image(systemName: "checkmark.circle")
                 .font(.system(size: 64))
                 .foregroundStyle(Color(.systemGray3))
-            Text("Todoがありません")
+            Text("No todos yet")
                 .font(.title3)
                 .fontWeight(.medium)
                 .foregroundStyle(.secondary)
-            Text("右下のボタンから追加してみましょう")
+            Text("Tap the + button to add one")
                 .font(.subheadline)
                 .foregroundStyle(Color(.systemGray3))
         }
@@ -140,21 +143,14 @@ struct ContentView: View {
 
     // MARK: - Helpers
 
-    private func toggleTodo(_ todo: Todo) {
-        guard let index = todos.firstIndex(where: { $0.id == todo.id }) else { return }
-        withAnimation(.spring(duration: 0.3)) {
-            todos[index].isCompleted.toggle()
-        }
-    }
-
     private func deleteTodos(from section: [Todo], at indexSet: IndexSet) {
-        let idsToDelete = indexSet.map { section[$0].id }
-        withAnimation {
-            todos.removeAll { idsToDelete.contains($0.id) }
+        for index in indexSet {
+            context.delete(section[index])
         }
     }
 }
 
 #Preview {
     ContentView()
+        .modelContainer(for: Todo.self, inMemory: true)
 }

@@ -6,9 +6,10 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct AddTodoView: View {
-    @Binding var todos: [Todo]
+    @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     @State private var title = ""
     @FocusState private var isFocused: Bool
@@ -16,7 +17,7 @@ struct AddTodoView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
-                TextField("例: 牛乳を買う", text: $title)
+                TextField("e.g. Buy milk", text: $title)
                     .font(.body)
                     .padding()
                     .background(Color(.systemGray6))
@@ -26,19 +27,17 @@ struct AddTodoView: View {
                 Spacer()
             }
             .padding()
-            .navigationTitle("新しいTodo")
+            .navigationTitle("New Todo")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("キャンセル") { dismiss() }
+                    Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("追加") {
+                    Button("Add") {
                         let trimmed = title.trimmingCharacters(in: .whitespaces)
                         guard !trimmed.isEmpty else { return }
-                        withAnimation(.spring(duration: 0.35)) {
-                            todos.insert(Todo(title: trimmed), at: 0)
-                        }
+                        context.insert(Todo(title: trimmed))
                         dismiss()
                     }
                     .fontWeight(.semibold)
