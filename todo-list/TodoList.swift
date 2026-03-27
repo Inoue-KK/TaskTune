@@ -12,10 +12,12 @@ import SwiftData
 class TodoList {
     var title: String
     var createdAt: Date
+    var sortOrder: Int
     @Relationship(deleteRule: .cascade) var todos: [Todo] = []
 
-    init(title: String) {
+    init(title: String, sortOrder: Int = 0) {
         self.title = title
         self.createdAt = Date()
+        self.sortOrder = sortOrder
     }
 }

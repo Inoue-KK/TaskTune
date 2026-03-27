@@ -10,7 +10,9 @@ import SwiftData
 
 struct ListsView: View {
     @Environment(\.modelContext) private var context
-    @Query(sort: \TodoList.createdAt) private var lists: [TodoList]
+    @Query(sort: \TodoList.sortOrder) private var savedLists: [TodoList]
+    @State private var lists: [TodoList] = []
+    @State private var editMode: EditMode = .inactive
     @State private var showingAddSheet = false
     @State private var renamingList: TodoList?
 
@@ -25,10 +27,13 @@ struct ListsView: View {
                     }
                 }
 
-                addButton
+                if !editMode.isEditing {
+                    addButton
+                }
             }
             .navigationTitle("")
             .toolbar(.hidden, for: .navigationBar)
+            .environment(\.editMode, $editMode)
             .safeAreaInset(edge: .top) {
                 HStack {
                     Text("Lists")
@@ -38,17 +43,27 @@ struct ListsView: View {
                         .padding(.top, 8)
                         .padding(.bottom, 4)
                     Spacer()
+                    if !lists.isEmpty {
+                        Button(editMode.isEditing ? "Done" : "Edit") {
+                            editMode = editMode.isEditing ? .inactive : .active
+                        }
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                        .padding(.bottom, 4)
+                    }
                 }
                 .background(.clear)
             }
         }
+        .onAppear { lists = savedLists }
+        .onChange(of: savedLists) { _, newValue in lists = newValue }
         .sheet(item: $renamingList) { list in
             RenameListView(todoList: list)
                 .presentationDetents([.height(280)])
                 .presentationCornerRadius(20)
         }
         .sheet(isPresented: $showingAddSheet) {
-            AddListView()
+            AddListView(nextSortOrder: lists.count)
                 .presentationDetents([.height(280)])
                 .presentationCornerRadius(20)
         }
@@ -59,18 +74,14 @@ struct ListsView: View {
     private var listOfLists: some View {
         List {
             ForEach(lists) { list in
-                NavigationLink(destination: ContentView(todoList: list)) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(list.title)
-                                .font(.body)
-                            Text("\(list.todos.count) items")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                Group {
+                    if editMode.isEditing {
+                        rowContent(for: list)
+                    } else {
+                        NavigationLink(destination: ContentView(todoList: list)) {
+                            rowContent(for: list)
                         }
-                        Spacer()
                     }
-                    .padding(.vertical, 2)
                 }
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                     Button(role: .destructive) {
@@ -88,8 +99,30 @@ struct ListsView: View {
                     .tint(.orange)
                 }
             }
+            .onMove { source, destination in
+                lists.move(fromOffsets: source, toOffset: destination)
+                for (index, list) in lists.enumerated() {
+                    list.sortOrder = index
+                }
+            }
         }
         .listStyle(.insetGrouped)
+    }
+
+    // MARK: - Row Content
+
+    private func rowContent(for list: TodoList) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(list.title)
+                    .font(.body)
+                Text("\(list.todos.count) items")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+        }
+        .padding(.vertical, 6)
     }
 
     // MARK: - Empty State

@@ -11,6 +11,7 @@ import SwiftData
 struct AddListView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
+    let nextSortOrder: Int
     @State private var title = ""
     @FocusState private var isFocused: Bool
 
@@ -28,7 +29,7 @@ struct AddListView: View {
 
                 Button {
                     guard !trimmed.isEmpty else { return }
-                    context.insert(TodoList(title: trimmed))
+                    context.insert(TodoList(title: trimmed, sortOrder: nextSortOrder))
                     dismiss()
                 } label: {
                     Text("Add")
