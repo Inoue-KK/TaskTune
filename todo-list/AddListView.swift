@@ -1,5 +1,5 @@
 //
-//  AddTodoView.swift
+//  AddListView.swift
 //  todo-list
 //
 //  Created by 井上京佳 on 2026/03/26.
@@ -8,17 +8,16 @@
 import SwiftUI
 import SwiftData
 
-struct AddTodoView: View {
+struct AddListView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
-    let todoList: TodoList
     @State private var title = ""
     @FocusState private var isFocused: Bool
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                TextField("e.g. Buy milk", text: $title)
+                TextField("e.g. Shopping", text: $title)
                     .font(.body)
                     .padding()
                     .background(Color(.systemGray6))
@@ -29,9 +28,7 @@ struct AddTodoView: View {
 
                 Button {
                     guard !trimmed.isEmpty else { return }
-                    let todo = Todo(title: trimmed)
-                    context.insert(todo)
-                    todo.todoList = todoList
+                    context.insert(TodoList(title: trimmed))
                     dismiss()
                 } label: {
                     Text("Add")
@@ -51,7 +48,7 @@ struct AddTodoView: View {
                 Spacer()
             }
             .padding()
-            .navigationTitle("New Todo")
+            .navigationTitle("New List")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear { isFocused = true }
         }

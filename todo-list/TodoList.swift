@@ -1,5 +1,5 @@
 //
-//  Todo.swift
+//  TodoList.swift
 //  todo-list
 //
 //  Created by 井上京佳 on 2026/03/26.
@@ -9,15 +9,13 @@ import Foundation
 import SwiftData
 
 @Model
-class Todo {
+class TodoList {
     var title: String
-    var isCompleted: Bool
     var createdAt: Date
-    var todoList: TodoList?
+    @Relationship(deleteRule: .cascade) var todos: [Todo] = []
 
     init(title: String) {
         self.title = title
-        self.isCompleted = false
         self.createdAt = Date()
     }
 }

@@ -10,38 +10,60 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var context
-    @Query(sort: \Todo.createdAt, order: .reverse) private var todos: [Todo]
     @State private var showingAddSheet = false
+    @State private var showingRenameSheet = false
+    let todoList: TodoList
 
-    private var pendingTodos: [Todo] { todos.filter { !$0.isCompleted } }
-    private var completedTodos: [Todo] { todos.filter { $0.isCompleted } }
+    private var sortedTodos: [Todo] {
+        todoList.todos.sorted { $0.createdAt > $1.createdAt }
+    }
+    private var pendingTodos: [Todo] { sortedTodos.filter { !$0.isCompleted } }
+    private var completedTodos: [Todo] { sortedTodos.filter { $0.isCompleted } }
 
     var body: some View {
-        NavigationStack {
-            ZStack(alignment: .bottomTrailing) {
-                Group {
-                    if todos.isEmpty {
-                        emptyState
-                    } else {
-                        todoList
-                    }
+        ZStack(alignment: .bottomTrailing) {
+            Group {
+                if sortedTodos.isEmpty {
+                    emptyState
+                } else {
+                    todoListView
                 }
-
-                addButton
             }
-            .navigationTitle("Todo")
-            .navigationBarTitleDisplayMode(.large)
+
+            addButton
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Button {
+                    showingRenameSheet = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Text(todoList.title)
+                            .font(.headline)
+                        Image(systemName: "square.and.pencil")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .foregroundStyle(.primary)
+                }
+            }
+        }
+        .sheet(isPresented: $showingRenameSheet) {
+            RenameListView(todoList: todoList)
+                .presentationDetents([.height(280)])
+                .presentationCornerRadius(20)
         }
         .sheet(isPresented: $showingAddSheet) {
-            AddTodoView()
-                .presentationDetents([.height(200)])
+            AddTodoView(todoList: todoList)
+                .presentationDetents([.height(280)])
                 .presentationCornerRadius(20)
         }
     }
 
     // MARK: - Todo List
 
-    private var todoList: some View {
+    private var todoListView: some View {
         List {
             if !pendingTodos.isEmpty {
                 Section {
@@ -148,9 +170,4 @@ struct ContentView: View {
             context.delete(section[index])
         }
     }
-}
-
-#Preview {
-    ContentView()
-        .modelContainer(for: Todo.self, inMemory: true)
 }

@@ -1,24 +1,27 @@
 //
-//  AddTodoView.swift
+//  RenameListView.swift
 //  todo-list
 //
 //  Created by 井上京佳 on 2026/03/26.
 //
 
 import SwiftUI
-import SwiftData
 
-struct AddTodoView: View {
-    @Environment(\.modelContext) private var context
+struct RenameListView: View {
     @Environment(\.dismiss) private var dismiss
     let todoList: TodoList
-    @State private var title = ""
+    @State private var title: String
     @FocusState private var isFocused: Bool
+
+    init(todoList: TodoList) {
+        self.todoList = todoList
+        self._title = State(initialValue: todoList.title)
+    }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                TextField("e.g. Buy milk", text: $title)
+                TextField("List name", text: $title)
                     .font(.body)
                     .padding()
                     .background(Color(.systemGray6))
@@ -28,13 +31,10 @@ struct AddTodoView: View {
                 let trimmed = title.trimmingCharacters(in: .whitespaces)
 
                 Button {
-                    guard !trimmed.isEmpty else { return }
-                    let todo = Todo(title: trimmed)
-                    context.insert(todo)
-                    todo.todoList = todoList
+                    if !trimmed.isEmpty { todoList.title = trimmed }
                     dismiss()
                 } label: {
-                    Text("Add")
+                    Text("Save")
                         .font(.body)
                         .fontWeight(.semibold)
                         .foregroundStyle(.white)
@@ -51,7 +51,7 @@ struct AddTodoView: View {
                 Spacer()
             }
             .padding()
-            .navigationTitle("New Todo")
+            .navigationTitle("Rename List")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear { isFocused = true }
         }

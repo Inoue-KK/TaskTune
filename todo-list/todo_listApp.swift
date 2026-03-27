@@ -12,8 +12,8 @@ import SwiftData
 struct todo_listApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ListsView()
         }
-        .modelContainer(for: Todo.self)
+        .modelContainer(for: TodoList.self)
     }
 }
