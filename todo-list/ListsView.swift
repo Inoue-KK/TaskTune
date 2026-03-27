@@ -27,8 +27,20 @@ struct ListsView: View {
 
                 addButton
             }
-            .navigationTitle("Lists")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationTitle("")
+            .toolbar(.hidden, for: .navigationBar)
+            .safeAreaInset(edge: .top) {
+                HStack {
+                    Text("Lists")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                        .padding(.bottom, 4)
+                    Spacer()
+                }
+                .background(.clear)
+            }
         }
         .sheet(item: $renamingList) { list in
             RenameListView(todoList: list)
