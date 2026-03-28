@@ -47,6 +47,14 @@ enum WidgetFontSize: String, AppEnum {
         case .large: .subheadline
         }
     }
+
+    var headerFont: Font {
+        switch self {
+        case .small: .subheadline
+        case .medium: .headline
+        case .large: .title3
+        }
+    }
 }
 
 // MARK: - AppEnum: Accent Color
@@ -387,7 +395,7 @@ struct WidgetHeaderView: View {
     var body: some View {
         HStack {
             Text(entry.listTitle)
-                .font(.headline)
+                .font(entry.settings.fontSize.headerFont)
                 .lineLimit(1)
             Spacer()
             HStack(spacing: 6) {
@@ -403,7 +411,7 @@ struct WidgetHeaderView: View {
                 }
             }
         }
-        .padding(.bottom, 8)
+        .padding(.bottom, 1)
     }
 }
 
@@ -440,22 +448,25 @@ struct SmallWidgetView: View {
 struct MediumWidgetView: View {
     let entry: TodoWidgetEntry
 
+    // Medium widget content area: ~158pt height, minus 24pt vertical padding, ~18pt header, 3pt divider ≈ 114pt for items
+    private var maxItemCount: Int {
+        max(1, Int(114 / entry.settings.estimatedRowHeight))
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             WidgetHeaderView(entry: entry)
-            Divider().padding(.bottom, 8)
-            GeometryReader { proxy in
-                pendingList(availableHeight: proxy.size.height)
-            }
+            Divider().padding(.bottom, 1)
+            pendingList
         }
-        .padding()
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
         .containerBackground(for: .widget) { entry.settings.background.color }
     }
 
     @ViewBuilder
-    private func pendingList(availableHeight: CGFloat) -> some View {
-        let count = max(1, Int(availableHeight / entry.settings.estimatedRowHeight))
-        let toShow = Array(entry.pendingTodos.prefix(count))
+    private var pendingList: some View {
+        let toShow = Array(entry.pendingTodos.prefix(maxItemCount))
         let remaining = entry.totalPending - toShow.count
 
         VStack(alignment: .leading, spacing: 0) {
