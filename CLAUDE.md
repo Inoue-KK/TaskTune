@@ -25,7 +25,9 @@ todo-list/
 
 TodoListWidget/
 ├── TodoListWidgetBundle.swift  # ウィジェットのエントリポイント（@main）
-└── TodoListWidget.swift        # ウィジェット実装（Small/Medium・インタラクティブ対応）
+└── TodoListWidget.swift        # ウィジェット実装（Small/Medium/Large・インタラクティブ対応）
+
+design/                   # アイコン制作用素材（Xcodeビルド対象外）
 ```
 
 ## 主な機能
@@ -36,10 +38,13 @@ TodoListWidget/
 - タップでチェックON/OFF（アニメーション付き）
 - 「未完了」「完了」セクションへの自動振り分け
 - スワイプで削除（リスト・Todo両対応）
+- ドラッグで並び替え（リスト一覧・Pending/Completedセクション内のTodo）
 - エンプティステート表示
-- ホーム画面ウィジェット（Small/Medium）
+- ホーム画面ウィジェット（Small/Medium/Large）
   - 表示するリストをウィジェット設定で選択可能
-  - Mediumウィジェット上で直接Todoを完了にできる（iOS 17 Interactive Widgets）
+  - ウィジェット設定でデザインをカスタマイズ可能（文字サイズ・アクセントカラー・背景色・行の高さ・チェックボックス位置・残タスク数/完了数の表示切替・完了済み表示[Largeのみ]）
+  - Medium/LargeウィジェットでTodoを直接完了にできる（iOS 17 Interactive Widgets）
+  - Smallウィジェットは残タスク数をカウント表示
   - ウィジェットタップで該当リストを直接開く（ディープリンク）
   - アプリがバックグラウンドに移行したタイミングでウィジェットを自動更新
 
@@ -47,6 +52,7 @@ TodoListWidget/
 
 - SwiftDataで永続化。`TodoList` が `@Relationship(deleteRule: .cascade)` で `Todo` を管理
 - リスト削除時にTodoも自動削除される
+- `TodoList.sortOrder` と `Todo.sortOrder` で並び順を永続管理（ドラッグ並び替え時に更新）
 - システムカラーを使用してダーク/ライトモードに自動対応
 - 不要な抽象化を避け、最小限のコードで実装する
 - App Group（`group.com.inoue-kk.todo-list`）経由でメインアプリとウィジェットがSwiftDataストアを共有
