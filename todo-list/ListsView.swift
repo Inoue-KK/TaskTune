@@ -12,11 +12,12 @@ struct ListsView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \TodoList.sortOrder) private var savedLists: [TodoList]
     @State private var lists: [TodoList] = []
+    @State private var path = NavigationPath()
     @State private var showingAddSheet = false
     @State private var renamingList: TodoList?
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             ZStack(alignment: .bottomTrailing) {
                 Group {
                     if lists.isEmpty {
@@ -43,6 +44,16 @@ struct ListsView: View {
         }
         .onAppear { lists = savedLists }
         .onChange(of: savedLists) { _, newValue in lists = newValue }
+        .onOpenURL { url in
+            guard url.scheme == "todolist",
+                  url.host == "list",
+                  let encoded = url.pathComponents.last,
+                  let title = encoded.removingPercentEncoding,
+                  let list = lists.first(where: { $0.title == title })
+            else { return }
+            path.removeLast(path.count)
+            path.append(list)
+        }
         .sheet(item: $renamingList) { list in
             RenameListView(todoList: list)
                 .presentationDetents([.height(280)])
@@ -60,7 +71,7 @@ struct ListsView: View {
     private var listOfLists: some View {
         List {
             ForEach(lists) { list in
-                NavigationLink(destination: ContentView(todoList: list)) {
+                NavigationLink(value: list) {
                     rowContent(for: list)
                 }
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
@@ -87,6 +98,9 @@ struct ListsView: View {
             }
         }
         .listStyle(.insetGrouped)
+        .navigationDestination(for: TodoList.self) { list in
+            ContentView(todoList: list)
+        }
     }
 
     // MARK: - Row Content
