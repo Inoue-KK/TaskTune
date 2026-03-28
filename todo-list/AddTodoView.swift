@@ -29,7 +29,7 @@ struct AddTodoView: View {
 
                 Button {
                     guard !trimmed.isEmpty else { return }
-                    let todo = Todo(title: trimmed)
+                    let todo = Todo(title: trimmed, sortOrder: todoList.todos.count)
                     context.insert(todo)
                     todo.todoList = todoList
                     dismiss()

@@ -15,7 +15,7 @@ struct ContentView: View {
     let todoList: TodoList
 
     private var sortedTodos: [Todo] {
-        todoList.todos.sorted { $0.createdAt > $1.createdAt }
+        todoList.todos.sorted { $0.sortOrder < $1.sortOrder }
     }
     private var pendingTodos: [Todo] { sortedTodos.filter { !$0.isCompleted } }
     private var completedTodos: [Todo] { sortedTodos.filter { $0.isCompleted } }
@@ -73,6 +73,9 @@ struct ContentView: View {
                     .onDelete { indexSet in
                         deleteTodos(from: pendingTodos, at: indexSet)
                     }
+                    .onMove { source, destination in
+                        movePendingTodos(from: source, to: destination)
+                    }
                 } header: {
                     sectionHeader("Pending", count: pendingTodos.count)
                 }
@@ -85,6 +88,9 @@ struct ContentView: View {
                     }
                     .onDelete { indexSet in
                         deleteTodos(from: completedTodos, at: indexSet)
+                    }
+                    .onMove { source, destination in
+                        moveCompletedTodos(from: source, to: destination)
                     }
                 } header: {
                     sectionHeader("Completed", count: completedTodos.count)
@@ -168,6 +174,22 @@ struct ContentView: View {
     private func deleteTodos(from section: [Todo], at indexSet: IndexSet) {
         for index in indexSet {
             context.delete(section[index])
+        }
+    }
+
+    private func movePendingTodos(from source: IndexSet, to destination: Int) {
+        var items = pendingTodos
+        items.move(fromOffsets: source, toOffset: destination)
+        for (index, todo) in (items + completedTodos).enumerated() {
+            todo.sortOrder = index
+        }
+    }
+
+    private func moveCompletedTodos(from source: IndexSet, to destination: Int) {
+        var items = completedTodos
+        items.move(fromOffsets: source, toOffset: destination)
+        for (index, todo) in (pendingTodos + items).enumerated() {
+            todo.sortOrder = index
         }
     }
 }

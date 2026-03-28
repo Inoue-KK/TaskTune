@@ -13,11 +13,13 @@ class Todo {
     var title: String
     var isCompleted: Bool
     var createdAt: Date
+    var sortOrder: Int = 0
     var todoList: TodoList?
 
-    init(title: String) {
+    init(title: String, sortOrder: Int = 0) {
         self.title = title
         self.isCompleted = false
         self.createdAt = Date()
+        self.sortOrder = sortOrder
     }
 }
