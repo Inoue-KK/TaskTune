@@ -12,7 +12,6 @@ struct ListsView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \TodoList.sortOrder) private var savedLists: [TodoList]
     @State private var lists: [TodoList] = []
-    @State private var editMode: EditMode = .inactive
     @State private var showingAddSheet = false
     @State private var renamingList: TodoList?
 
@@ -27,32 +26,19 @@ struct ListsView: View {
                     }
                 }
 
-                if !editMode.isEditing {
-                    addButton
-                }
+                addButton
             }
             .navigationTitle("")
             .toolbar(.hidden, for: .navigationBar)
-            .environment(\.editMode, $editMode)
             .safeAreaInset(edge: .top) {
-                HStack {
-                    Text("Lists")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .padding(.horizontal)
-                        .padding(.top, 8)
-                        .padding(.bottom, 4)
-                    Spacer()
-                    if !lists.isEmpty {
-                        Button(editMode.isEditing ? "Done" : "Edit") {
-                            editMode = editMode.isEditing ? .inactive : .active
-                        }
-                        .padding(.horizontal)
-                        .padding(.top, 8)
-                        .padding(.bottom, 4)
-                    }
-                }
-                .background(.clear)
+                Text("Lists")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    .padding(.bottom, 4)
+                    .background(.clear)
             }
         }
         .onAppear { lists = savedLists }
@@ -74,14 +60,8 @@ struct ListsView: View {
     private var listOfLists: some View {
         List {
             ForEach(lists) { list in
-                Group {
-                    if editMode.isEditing {
-                        rowContent(for: list)
-                    } else {
-                        NavigationLink(destination: ContentView(todoList: list)) {
-                            rowContent(for: list)
-                        }
-                    }
+                NavigationLink(destination: ContentView(todoList: list)) {
+                    rowContent(for: list)
                 }
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                     Button(role: .destructive) {
@@ -122,6 +102,7 @@ struct ListsView: View {
             }
             Spacer()
         }
+        .frame(maxWidth: .infinity)
         .padding(.vertical, 6)
     }
 
