@@ -20,126 +20,6 @@ private var sharedStoreURL: URL {
         .appendingPathComponent("todo-list.store")
 }
 
-// MARK: - AppEnum: Font Size
-
-enum WidgetFontSize: String, AppEnum {
-    case small, medium, large
-
-    static var typeDisplayRepresentation: TypeDisplayRepresentation = "文字サイズ"
-    static var caseDisplayRepresentations: [WidgetFontSize: DisplayRepresentation] = [
-        .small: "小",
-        .medium: "中（標準）",
-        .large: "大"
-    ]
-
-    var itemFont: Font {
-        switch self {
-        case .small: .caption
-        case .medium: .subheadline
-        case .large: .body
-        }
-    }
-
-    var iconFont: Font {
-        switch self {
-        case .small: .caption2
-        case .medium: .caption
-        case .large: .subheadline
-        }
-    }
-
-    var headerFont: Font {
-        switch self {
-        case .small: .subheadline
-        case .medium: .headline
-        case .large: .title3
-        }
-    }
-}
-
-// MARK: - AppEnum: Accent Color
-
-enum WidgetAccentColor: String, AppEnum {
-    case blue, red, green, orange, purple, pink
-
-    static var typeDisplayRepresentation: TypeDisplayRepresentation = "アクセントカラー"
-    static var caseDisplayRepresentations: [WidgetAccentColor: DisplayRepresentation] = [
-        .blue: "ブルー",
-        .red: "レッド",
-        .green: "グリーン",
-        .orange: "オレンジ",
-        .purple: "パープル",
-        .pink: "ピンク"
-    ]
-
-    var color: Color {
-        switch self {
-        case .blue: .blue
-        case .red: .red
-        case .green: .green
-        case .orange: .orange
-        case .purple: .purple
-        case .pink: .pink
-        }
-    }
-}
-
-// MARK: - AppEnum: Background
-
-enum WidgetBackground: String, AppEnum {
-    case auto, white, black, clear
-
-    static var typeDisplayRepresentation: TypeDisplayRepresentation = "背景"
-    static var caseDisplayRepresentations: [WidgetBackground: DisplayRepresentation] = [
-        .auto: "自動",
-        .white: "ホワイト",
-        .black: "ブラック",
-        .clear: "透明"
-    ]
-
-    var color: Color {
-        switch self {
-        case .auto: Color(.systemBackground)
-        case .white: .white
-        case .black: .black
-        case .clear: .clear
-        }
-    }
-}
-
-// MARK: - AppEnum: Row Height
-
-enum WidgetRowHeight: String, AppEnum {
-    case compact, normal, comfortable
-
-    static var typeDisplayRepresentation: TypeDisplayRepresentation = "行の高さ"
-    static var caseDisplayRepresentations: [WidgetRowHeight: DisplayRepresentation] = [
-        .compact: "コンパクト",
-        .normal: "標準",
-        .comfortable: "ゆったり"
-    ]
-
-    var verticalPadding: CGFloat {
-        switch self {
-        case .compact: 2
-        case .normal: 6
-        case .comfortable: 11
-        }
-    }
-}
-
-// MARK: - AppEnum: Checkbox Position
-
-enum WidgetCheckboxPosition: String, AppEnum {
-    case leading, trailing
-
-    static var typeDisplayRepresentation: TypeDisplayRepresentation = "チェックボックス位置"
-    static var caseDisplayRepresentations: [WidgetCheckboxPosition: DisplayRepresentation] = [
-        .leading: "左",
-        .trailing: "右"
-    ]
-}
-
 // MARK: - Complete Todo Intent
 
 struct CompleteTodoIntent: AppIntent {
@@ -172,7 +52,7 @@ struct CompleteTodoIntent: AppIntent {
     }
 }
 
-// MARK: - List Selection Intent
+// MARK: - List Names Provider
 
 struct ListNamesProvider: DynamicOptionsProvider {
     func results() async throws -> [String] {
@@ -184,102 +64,25 @@ struct ListNamesProvider: DynamicOptionsProvider {
     }
 }
 
+// MARK: - Theme Names Provider
+
+struct ThemeNamesProvider: DynamicOptionsProvider {
+    func results() async throws -> [String] {
+        WidgetThemeStore.loadAll().map(\.name)
+    }
+}
+
+// MARK: - Widget Configuration Intent
+
 struct SelectListIntent: WidgetConfigurationIntent {
     static var title: LocalizedStringResource = "ウィジェット設定"
-    static var description = IntentDescription("リストとデザインを設定してください")
+    static var description = IntentDescription("リストとテーマを選択してください")
 
     @Parameter(title: "リスト", optionsProvider: ListNamesProvider())
     var listTitle: String?
 
-    @Parameter(title: "文字サイズ", default: .medium)
-    var fontSize: WidgetFontSize
-
-    @Parameter(title: "アクセントカラー", default: .blue)
-    var accentColor: WidgetAccentColor
-
-    @Parameter(title: "背景", default: .auto)
-    var background: WidgetBackground
-
-    @Parameter(title: "残タスク数を表示", default: true)
-    var showRemainingCount: Bool
-
-    @Parameter(title: "完了数を表示", default: false)
-    var showCompletedCount: Bool
-
-    @Parameter(title: "行の高さ", default: .normal)
-    var rowHeight: WidgetRowHeight
-
-    @Parameter(title: "チェックボックス位置", default: .leading)
-    var checkboxPosition: WidgetCheckboxPosition
-
-    @Parameter(title: "完了済みも表示（Largeのみ）", default: false)
-    var showCompleted: Bool
-}
-
-// MARK: - Widget Settings
-
-struct WidgetSettings: Sendable {
-    let fontSize: WidgetFontSize
-    let accentColor: WidgetAccentColor
-    let background: WidgetBackground
-    let showRemainingCount: Bool
-    let showCompletedCount: Bool
-    let rowHeight: WidgetRowHeight
-    let checkboxPosition: WidgetCheckboxPosition
-    let showCompleted: Bool
-
-    /// フォントサイズと行の高さから1行あたりの推定ピクセル高さを返す
-    var estimatedRowHeight: CGFloat {
-        let lineHeight: CGFloat
-        switch fontSize {
-        case .small: lineHeight = 16
-        case .medium: lineHeight = 20
-        case .large: lineHeight = 22
-        }
-        return lineHeight + rowHeight.verticalPadding * 2
-    }
-
-    static let `default` = WidgetSettings(
-        fontSize: .medium,
-        accentColor: .blue,
-        background: .auto,
-        showRemainingCount: true,
-        showCompletedCount: false,
-        rowHeight: .normal,
-        checkboxPosition: .leading,
-        showCompleted: false
-    )
-
-    init(from intent: SelectListIntent) {
-        fontSize = intent.fontSize
-        accentColor = intent.accentColor
-        background = intent.background
-        showRemainingCount = intent.showRemainingCount
-        showCompletedCount = intent.showCompletedCount
-        rowHeight = intent.rowHeight
-        checkboxPosition = intent.checkboxPosition
-        showCompleted = intent.showCompleted
-    }
-
-    init(
-        fontSize: WidgetFontSize,
-        accentColor: WidgetAccentColor,
-        background: WidgetBackground,
-        showRemainingCount: Bool,
-        showCompletedCount: Bool,
-        rowHeight: WidgetRowHeight,
-        checkboxPosition: WidgetCheckboxPosition,
-        showCompleted: Bool
-    ) {
-        self.fontSize = fontSize
-        self.accentColor = accentColor
-        self.background = background
-        self.showRemainingCount = showRemainingCount
-        self.showCompletedCount = showCompletedCount
-        self.rowHeight = rowHeight
-        self.checkboxPosition = checkboxPosition
-        self.showCompleted = showCompleted
-    }
+    @Parameter(title: "テーマ", optionsProvider: ThemeNamesProvider())
+    var themeName: String?
 }
 
 // MARK: - Entry
@@ -289,7 +92,7 @@ struct TodoWidgetEntry: TimelineEntry {
     let listTitle: String
     let pendingTodos: [String]
     let completedTodos: [String]
-    let settings: WidgetSettings
+    let theme: WidgetTheme
 
     var totalPending: Int { pendingTodos.count }
     var totalCompleted: Int { completedTodos.count }
@@ -304,7 +107,7 @@ struct TodoWidgetProvider: AppIntentTimelineProvider {
             listTitle: "Shopping",
             pendingTodos: ["Milk", "Eggs", "Bread", "Apples", "Butter", "Cheese"],
             completedTodos: ["Juice"],
-            settings: .default
+            theme: .default
         )
     }
 
@@ -319,7 +122,7 @@ struct TodoWidgetProvider: AppIntentTimelineProvider {
     }
 
     private func fetchEntry(for configuration: SelectListIntent) -> TodoWidgetEntry {
-        let settings = WidgetSettings(from: configuration)
+        let theme = WidgetThemeStore.find(name: configuration.themeName)
         do {
             let config = ModelConfiguration(url: sharedStoreURL)
             let container = try ModelContainer(for: TodoList.self, configurations: config)
@@ -333,7 +136,7 @@ struct TodoWidgetProvider: AppIntentTimelineProvider {
                     listTitle: list.title,
                     pendingTodos: sorted.filter { !$0.isCompleted }.map(\.title),
                     completedTodos: sorted.filter { $0.isCompleted }.map(\.title),
-                    settings: settings
+                    theme: theme
                 )
             }
         } catch {}
@@ -342,7 +145,7 @@ struct TodoWidgetProvider: AppIntentTimelineProvider {
             listTitle: "Todo",
             pendingTodos: [],
             completedTodos: [],
-            settings: settings
+            theme: theme
         )
     }
 }
@@ -353,7 +156,7 @@ struct TodoRowView: View {
     let title: String
     let listTitle: String
     let isCompleted: Bool
-    let settings: WidgetSettings
+    let theme: WidgetTheme
 
     var body: some View {
         if isCompleted {
@@ -368,22 +171,22 @@ struct TodoRowView: View {
 
     private var checkbox: some View {
         Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
-            .font(settings.fontSize.iconFont)
-            .foregroundStyle(isCompleted ? .secondary : settings.accentColor.color)
+            .font(theme.fontSize.iconFont)
+            .foregroundStyle(isCompleted ? theme.secondaryTextColor : theme.accentColor)
     }
 
     private var rowContent: some View {
         HStack(spacing: 8) {
-            if settings.checkboxPosition == .leading { checkbox }
+            if theme.checkboxPosition == .leading { checkbox }
             Text(title)
-                .font(settings.fontSize.itemFont)
+                .font(theme.fontSize.itemFont)
                 .lineLimit(1)
-                .foregroundStyle(isCompleted ? .secondary : .primary)
+                .foregroundStyle(isCompleted ? theme.secondaryTextColor : theme.textColor)
                 .strikethrough(isCompleted)
             Spacer()
-            if settings.checkboxPosition == .trailing { checkbox }
+            if theme.checkboxPosition == .trailing { checkbox }
         }
-        .padding(.vertical, settings.rowHeight.verticalPadding)
+        .padding(.vertical, theme.rowHeight.verticalPadding)
     }
 }
 
@@ -395,19 +198,20 @@ struct WidgetHeaderView: View {
     var body: some View {
         HStack {
             Text(entry.listTitle)
-                .font(entry.settings.fontSize.headerFont)
+                .font(entry.theme.fontSize.headerFont)
+                .foregroundStyle(entry.theme.textColor)
                 .lineLimit(1)
             Spacer()
             HStack(spacing: 6) {
-                if entry.settings.showRemainingCount {
+                if entry.theme.showRemainingCount {
                     Text("\(entry.totalPending) left")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(entry.theme.secondaryTextColor)
                 }
-                if entry.settings.showCompletedCount {
+                if entry.theme.showCompletedCount {
                     Text("\(entry.totalCompleted) done")
                         .font(.caption)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(entry.theme.tertiaryTextColor)
                 }
             }
         }
@@ -424,22 +228,25 @@ struct SmallWidgetView: View {
         VStack(spacing: 6) {
             Image(systemName: entry.totalPending == 0 ? "checkmark.circle.fill" : "circle.dotted")
                 .font(.system(size: 32))
-                .foregroundStyle(entry.totalPending == 0 ? .green : entry.settings.accentColor.color)
+                .foregroundStyle(entry.totalPending == 0 ? Color.green : entry.theme.accentColor)
 
             Text("\(entry.totalPending)")
                 .font(.system(size: 48, weight: .bold))
                 .minimumScaleFactor(0.5)
+                .foregroundStyle(entry.theme.textColor)
 
             Text(entry.listTitle)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(entry.theme.secondaryTextColor)
                 .lineLimit(1)
 
             Text(entry.totalPending == 1 ? "task left" : "tasks left")
                 .font(.caption2)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(entry.theme.tertiaryTextColor)
         }
-        .containerBackground(for: .widget) { entry.settings.background.color }
+        .containerBackground(for: .widget) {
+            entry.theme.backgroundColor
+        }
     }
 }
 
@@ -450,7 +257,7 @@ struct MediumWidgetView: View {
 
     // Medium widget content area: ~158pt height, minus 24pt vertical padding, ~18pt header, 3pt divider ≈ 114pt for items
     private var maxItemCount: Int {
-        max(1, Int(114 / entry.settings.estimatedRowHeight))
+        max(1, Int(114 / entry.theme.estimatedRowHeight))
     }
 
     var body: some View {
@@ -461,7 +268,9 @@ struct MediumWidgetView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .containerBackground(for: .widget) { entry.settings.background.color }
+        .containerBackground(for: .widget) {
+            entry.theme.backgroundColor
+        }
     }
 
     @ViewBuilder
@@ -473,16 +282,16 @@ struct MediumWidgetView: View {
             if entry.pendingTodos.isEmpty {
                 HStack {
                     Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
-                    Text("All done!").font(.subheadline).foregroundStyle(.secondary)
+                    Text("All done!").font(.subheadline).foregroundStyle(entry.theme.secondaryTextColor)
                 }
             } else {
                 ForEach(Array(toShow.enumerated()), id: \.offset) { _, title in
-                    TodoRowView(title: title, listTitle: entry.listTitle, isCompleted: false, settings: entry.settings)
+                    TodoRowView(title: title, listTitle: entry.listTitle, isCompleted: false, theme: entry.theme)
                 }
                 if remaining > 0 {
                     Text("+ \(remaining) more")
                         .font(.caption)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(entry.theme.tertiaryTextColor)
                         .padding(.top, 2)
                 }
             }
@@ -505,14 +314,15 @@ struct LargeWidgetView: View {
             }
         }
         .padding()
-        .containerBackground(for: .widget) { entry.settings.background.color }
+        .containerBackground(for: .widget) {
+            entry.theme.backgroundColor
+        }
     }
 
     @ViewBuilder
     private func todoList(availableHeight: CGFloat) -> some View {
-        let showCompletedSection = entry.settings.showCompleted && !entry.completedTodos.isEmpty
-        let rowH = entry.settings.estimatedRowHeight
-        // 完了セクションがある場合、上60%を未完了・下40%を完了に割り当てる
+        let showCompletedSection = entry.theme.showCompleted && !entry.completedTodos.isEmpty
+        let rowH = entry.theme.estimatedRowHeight
         let pendingHeight = showCompletedSection ? availableHeight * 0.6 : availableHeight
         let completedHeight = availableHeight * 0.4
         let pendingCount = max(1, Int(pendingHeight / rowH))
@@ -524,22 +334,22 @@ struct LargeWidgetView: View {
             if entry.pendingTodos.isEmpty && !showCompletedSection {
                 HStack {
                     Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
-                    Text("All done!").font(.subheadline).foregroundStyle(.secondary)
+                    Text("All done!").font(.subheadline).foregroundStyle(entry.theme.secondaryTextColor)
                 }
             } else {
                 ForEach(Array(pendingToShow.enumerated()), id: \.offset) { _, title in
-                    TodoRowView(title: title, listTitle: entry.listTitle, isCompleted: false, settings: entry.settings)
+                    TodoRowView(title: title, listTitle: entry.listTitle, isCompleted: false, theme: entry.theme)
                 }
                 if remaining > 0 {
                     Text("+ \(remaining) more")
                         .font(.caption)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(entry.theme.tertiaryTextColor)
                         .padding(.top, 2)
                 }
                 if showCompletedSection {
                     Divider().padding(.vertical, 8)
                     ForEach(Array(entry.completedTodos.prefix(completedCount).enumerated()), id: \.offset) { _, title in
-                        TodoRowView(title: title, listTitle: entry.listTitle, isCompleted: true, settings: entry.settings)
+                        TodoRowView(title: title, listTitle: entry.listTitle, isCompleted: true, theme: entry.theme)
                     }
                 }
             }
@@ -584,7 +394,7 @@ struct TodoListWidget: Widget {
             TodoWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("Todo List")
-        .description("リストとデザインを自由にカスタマイズできます。")
+        .description("リストとテーマを自由にカスタマイズできます。")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }

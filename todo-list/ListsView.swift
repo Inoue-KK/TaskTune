@@ -15,6 +15,7 @@ struct ListsView: View {
     @State private var path = NavigationPath()
     @State private var showingAddSheet = false
     @State private var renamingList: TodoList?
+    @State private var showingWidgetThemeSheet = false
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -32,14 +33,23 @@ struct ListsView: View {
             .navigationTitle("")
             .toolbar(.hidden, for: .navigationBar)
             .safeAreaInset(edge: .top) {
-                Text("Lists")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
-                    .padding(.top, 8)
-                    .padding(.bottom, 4)
-                    .background(.clear)
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Lists")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                    Spacer()
+                    Button {
+                        showingWidgetThemeSheet = true
+                    } label: {
+                        Image(systemName: "square.grid.2x2")
+                            .font(.title3)
+                            .foregroundStyle(.primary)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .padding(.bottom, 4)
+                .background(.clear)
             }
         }
         .onAppear { lists = savedLists }
@@ -63,6 +73,9 @@ struct ListsView: View {
             AddListView(nextSortOrder: lists.count)
                 .presentationDetents([.height(280)])
                 .presentationCornerRadius(20)
+        }
+        .sheet(isPresented: $showingWidgetThemeSheet) {
+            WidgetThemeListView()
         }
     }
 

@@ -57,6 +57,7 @@
 			membershipExceptions = (
 				Todo.swift,
 				TodoList.swift,
+				WidgetTheme.swift,
 			);
 			target = 371CB4192F77A7DA007228FB /* TodoListWidgetExtension */;
 		};
