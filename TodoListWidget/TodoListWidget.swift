@@ -14,6 +14,13 @@ import AppIntents
 
 private let appGroupID = "group.com.inoue-kk.todo-list"
 
+private struct JustCompletedInfo: Codable {
+    let listTitle: String
+    let todoTitle: String
+    let timestamp: Date
+}
+private let justCompletedKey = "justCompleted"
+
 private var sharedStoreURL: URL {
     FileManager.default
         .containerURL(forSecurityApplicationGroupIdentifier: appGroupID)!
@@ -47,6 +54,11 @@ struct CompleteTodoIntent: AppIntent {
            let todo = list.todos.first(where: { $0.title == todoTitle && !$0.isCompleted }) {
             todo.isCompleted = true
             try context.save()
+            // Save just-completed info for brief visual feedback
+            let info = JustCompletedInfo(listTitle: listTitle, todoTitle: todoTitle, timestamp: Date())
+            if let data = try? JSONEncoder().encode(info) {
+                UserDefaults(suiteName: appGroupID)?.set(data, forKey: justCompletedKey)
+            }
         }
         return .result()
     }
@@ -93,6 +105,7 @@ struct TodoWidgetEntry: TimelineEntry {
     let pendingTodos: [String]
     let completedTodos: [String]
     let theme: WidgetTheme
+    var justCompletedTitle: String? = nil
 
     var totalPending: Int { pendingTodos.count }
     var totalCompleted: Int { completedTodos.count }
@@ -116,12 +129,25 @@ struct TodoWidgetProvider: AppIntentTimelineProvider {
     }
 
     func timeline(for configuration: SelectListIntent, in context: Context) async -> Timeline<TodoWidgetEntry> {
-        let entry = fetchEntry(for: configuration)
-        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 30, to: Date())!
-        return Timeline(entries: [entry], policy: .after(nextUpdate))
+        let now = Date()
+        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 30, to: now)!
+
+        let defaults = UserDefaults(suiteName: appGroupID)
+        if let data = defaults?.data(forKey: justCompletedKey),
+           let info = try? JSONDecoder().decode(JustCompletedInfo.self, from: data),
+           now.timeIntervalSince(info.timestamp) < 5 {
+            defaults?.removeObject(forKey: justCompletedKey)
+            // Entry 1: show just-completed item as checked in its original position
+            let flashEntry = fetchEntry(for: configuration, date: now, justCompleted: info)
+            // Entry 2: normal state
+            let normalEntry = fetchEntry(for: configuration, date: now.addingTimeInterval(1.5))
+            return Timeline(entries: [flashEntry, normalEntry], policy: .after(nextUpdate))
+        }
+
+        return Timeline(entries: [fetchEntry(for: configuration, date: now)], policy: .after(nextUpdate))
     }
 
-    private func fetchEntry(for configuration: SelectListIntent) -> TodoWidgetEntry {
+    private func fetchEntry(for configuration: SelectListIntent, date: Date = Date(), justCompleted: JustCompletedInfo? = nil) -> TodoWidgetEntry {
         let theme = WidgetThemeStore.find(name: configuration.themeName)
         do {
             let config = ModelConfiguration(url: sharedStoreURL)
@@ -131,8 +157,27 @@ struct TodoWidgetProvider: AppIntentTimelineProvider {
             let list = lists.first(where: { $0.title == configuration.listTitle }) ?? lists.first
             if let list {
                 let sorted = list.todos.sorted { $0.sortOrder < $1.sortOrder }
+
+                if let jc = justCompleted,
+                   jc.listTitle == list.title,
+                   let jcTodo = sorted.first(where: { $0.title == jc.todoTitle && $0.isCompleted }) {
+                    // Re-insert the just-completed item at its original sort position
+                    var pending = sorted.filter { !$0.isCompleted }.map(\.title)
+                    let insertIdx = sorted.prefix(while: { $0.sortOrder < jcTodo.sortOrder }).filter { !$0.isCompleted }.count
+                    pending.insert(jc.todoTitle, at: min(insertIdx, pending.count))
+                    let completed = sorted.filter { $0.isCompleted && $0.title != jc.todoTitle }.map(\.title)
+                    return TodoWidgetEntry(
+                        date: date,
+                        listTitle: list.title,
+                        pendingTodos: pending,
+                        completedTodos: completed,
+                        theme: theme,
+                        justCompletedTitle: jc.todoTitle
+                    )
+                }
+
                 return TodoWidgetEntry(
-                    date: Date(),
+                    date: date,
                     listTitle: list.title,
                     pendingTodos: sorted.filter { !$0.isCompleted }.map(\.title),
                     completedTodos: sorted.filter { $0.isCompleted }.map(\.title),
@@ -141,7 +186,7 @@ struct TodoWidgetProvider: AppIntentTimelineProvider {
             }
         } catch {}
         return TodoWidgetEntry(
-            date: Date(),
+            date: date,
             listTitle: "Todo",
             pendingTodos: [],
             completedTodos: [],
@@ -307,7 +352,7 @@ struct MediumWidgetView: View {
                 }
             } else {
                 ForEach(Array(toShow.enumerated()), id: \.offset) { _, title in
-                    TodoRowView(title: title, listTitle: entry.listTitle, isCompleted: false, theme: entry.theme)
+                    TodoRowView(title: title, listTitle: entry.listTitle, isCompleted: title == entry.justCompletedTitle, theme: entry.theme)
                 }
                 if remaining > 0 {
                     Text("+ \(remaining) more")
@@ -359,7 +404,7 @@ struct LargeWidgetView: View {
                 }
             } else {
                 ForEach(Array(pendingToShow.enumerated()), id: \.offset) { _, title in
-                    TodoRowView(title: title, listTitle: entry.listTitle, isCompleted: false, theme: entry.theme)
+                    TodoRowView(title: title, listTitle: entry.listTitle, isCompleted: title == entry.justCompletedTitle, theme: entry.theme)
                 }
                 if remaining > 0 {
                     Text("+ \(remaining) more")
