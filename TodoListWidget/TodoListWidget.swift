@@ -161,20 +161,20 @@ struct TodoRowView: View {
     @Environment(\.widgetRenderingMode) private var renderingMode
 
     var body: some View {
-        if isCompleted {
-            rowContent
-        } else {
-            Button(intent: CompleteTodoIntent(listTitle: listTitle, todoTitle: title)) {
-                rowContent
-            }
-            .buttonStyle(.plain)
-        }
+        rowContent
     }
 
     private var checkbox: some View {
         Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
             .font(theme.fontSize.iconFont)
             .foregroundStyle(isCompleted ? checkboxCompletedColor : checkboxPendingColor)
+    }
+
+    private var interactiveCheckbox: some View {
+        Button(intent: CompleteTodoIntent(listTitle: listTitle, todoTitle: title)) {
+            checkbox
+        }
+        .buttonStyle(.plain)
     }
 
     private var checkboxPendingColor: Color {
@@ -186,7 +186,9 @@ struct TodoRowView: View {
 
     private var rowContent: some View {
         HStack(spacing: 8) {
-            if theme.checkboxPosition == .leading { checkbox }
+            if theme.checkboxPosition == .leading {
+                isCompleted ? AnyView(checkbox) : AnyView(interactiveCheckbox)
+            }
             Text(title)
                 .font(theme.fontSize.itemFont)
                 .lineLimit(1)
@@ -195,7 +197,9 @@ struct TodoRowView: View {
                     : (renderingMode == .accented ? Color.primary : theme.textColor))
                 .strikethrough(isCompleted)
             Spacer()
-            if theme.checkboxPosition == .trailing { checkbox }
+            if theme.checkboxPosition == .trailing {
+                isCompleted ? AnyView(checkbox) : AnyView(interactiveCheckbox)
+            }
         }
         .padding(.vertical, theme.rowHeight.verticalPadding)
     }
