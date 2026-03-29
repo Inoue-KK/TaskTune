@@ -9,8 +9,8 @@ import SwiftUI
 import SwiftData
 import WidgetKit
 
-// ⚠️ ウィジェットと同じApp GroupのIDに書き換えてください
-// 例: "group.com.yourname.todo-list"
+// ⚠️ Replace with the same App Group ID used in the widget target
+// e.g. "group.com.yourname.todo-list"
 private let appGroupID = "group.com.inoue-kk.todo-list"
 
 @main

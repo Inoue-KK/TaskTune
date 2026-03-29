@@ -33,9 +33,9 @@ enum WidgetFontSizeValue: String, Codable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .small: "小"
-        case .medium: "中（標準）"
-        case .large: "大"
+        case .small: "Small"
+        case .medium: "Medium"
+        case .large: "Large"
         }
     }
 
@@ -79,9 +79,9 @@ enum WidgetRowHeightValue: String, Codable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .compact: "コンパクト"
-        case .normal: "標準"
-        case .comfortable: "ゆったり"
+        case .compact: "Compact"
+        case .normal: "Normal"
+        case .comfortable: "Comfortable"
         }
     }
 
@@ -101,8 +101,8 @@ enum WidgetCheckboxPositionValue: String, Codable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .leading: "左"
-        case .trailing: "右"
+        case .leading: "Leading"
+        case .trailing: "Trailing"
         }
     }
 }

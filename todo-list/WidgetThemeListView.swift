@@ -23,11 +23,11 @@ struct WidgetThemeListView: View {
                     themeList
                 }
             }
-            .navigationTitle("ウィジェットテーマ")
+            .navigationTitle("Widget Themes")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("完了") { dismiss() }
+                    Button("Done") { dismiss() }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -110,11 +110,11 @@ struct WidgetThemeListView: View {
             Image(systemName: "paintpalette")
                 .font(.system(size: 64))
                 .foregroundStyle(Color(.systemGray3))
-            Text("テーマがありません")
+            Text("No themes yet")
                 .font(.title3)
                 .fontWeight(.medium)
                 .foregroundStyle(.secondary)
-            Text("＋ボタンからテーマを作成してください")
+            Text("Tap the + button to create one")
                 .font(.subheadline)
                 .foregroundStyle(Color(.systemGray3))
         }

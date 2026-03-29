@@ -84,59 +84,55 @@ struct WidgetThemeEditView: View {
 
                 // スクロール可能な設定リスト
                 List {
-                    // テーマ名
-                    Section("テーマ名") {
-                        TextField("名前を入力", text: $theme.name)
+                    Section("Theme Name") {
+                        TextField("Enter a name", text: $theme.name)
                     }
 
-                    // カラー設定
-                    Section("カラー") {
-                        ColorPicker("アクセントカラー", selection: accentColorBinding, supportsOpacity: false)
-                        ColorPicker("背景色", selection: backgroundColorBinding, supportsOpacity: false)
-                        ColorPicker("テキスト色", selection: textColorBinding, supportsOpacity: false)
+                    Section("Colors") {
+                        ColorPicker("Accent Color", selection: accentColorBinding, supportsOpacity: false)
+                        ColorPicker("Background Color", selection: backgroundColorBinding, supportsOpacity: false)
+                        ColorPicker("Text Color", selection: textColorBinding, supportsOpacity: false)
                     }
 
-                    // レイアウト設定
-                    Section("レイアウト") {
-                        Picker("文字サイズ", selection: $theme.fontSize) {
+                    Section("Layout") {
+                        Picker("Font Size", selection: $theme.fontSize) {
                             ForEach(WidgetFontSizeValue.allCases, id: \.self) {
                                 Text($0.displayName).tag($0)
                             }
                         }
-                        Picker("行の高さ", selection: $theme.rowHeight) {
+                        Picker("Row Height", selection: $theme.rowHeight) {
                             ForEach(WidgetRowHeightValue.allCases, id: \.self) {
                                 Text($0.displayName).tag($0)
                             }
                         }
-                        Picker("チェックボックス位置", selection: $theme.checkboxPosition) {
+                        Picker("Checkbox Position", selection: $theme.checkboxPosition) {
                             ForEach(WidgetCheckboxPositionValue.allCases, id: \.self) {
                                 Text($0.displayName).tag($0)
                             }
                         }
-                        Picker("スタイル", selection: $theme.checkboxStyle) {
+                        Picker("Style", selection: $theme.checkboxStyle) {
                             ForEach(WidgetCheckboxStyleValue.allCases, id: \.self) { style in
                                 Label(style.displayName, systemImage: style.pendingIcon).tag(style)
                             }
                         }
                     }
 
-                    // 表示設定
-                    Section("表示") {
-                        Toggle("残タスク数を表示", isOn: $theme.showRemainingCount)
-                        Toggle("完了数を表示", isOn: $theme.showCompletedCount)
-                        Toggle("完了済みも表示（Largeのみ）", isOn: $theme.showCompleted)
+                    Section("Display") {
+                        Toggle("Show Remaining Count", isOn: $theme.showRemainingCount)
+                        Toggle("Show Completed Count", isOn: $theme.showCompletedCount)
+                        Toggle("Show Completed (Large only)", isOn: $theme.showCompleted)
                     }
                 }
                 .listStyle(.insetGrouped)
             }
-            .navigationTitle(theme.name.isEmpty ? "新しいテーマ" : theme.name)
+            .navigationTitle(theme.name.isEmpty ? "New Theme" : theme.name)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("キャンセル") { dismiss() }
+                    Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("保存") {
+                    Button("Save") {
                         onSave(theme)
                         dismiss()
                     }
