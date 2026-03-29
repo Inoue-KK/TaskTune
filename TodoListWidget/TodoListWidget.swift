@@ -158,6 +158,8 @@ struct TodoRowView: View {
     let isCompleted: Bool
     let theme: WidgetTheme
 
+    @Environment(\.widgetRenderingMode) private var renderingMode
+
     var body: some View {
         if isCompleted {
             rowContent
@@ -172,7 +174,14 @@ struct TodoRowView: View {
     private var checkbox: some View {
         Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
             .font(theme.fontSize.iconFont)
-            .foregroundStyle(isCompleted ? theme.secondaryTextColor : theme.accentColor)
+            .foregroundStyle(isCompleted ? checkboxCompletedColor : checkboxPendingColor)
+    }
+
+    private var checkboxPendingColor: Color {
+        renderingMode == .accented ? .primary : theme.accentColor
+    }
+    private var checkboxCompletedColor: Color {
+        renderingMode == .accented ? .secondary : theme.secondaryTextColor
     }
 
     private var rowContent: some View {
@@ -181,7 +190,9 @@ struct TodoRowView: View {
             Text(title)
                 .font(theme.fontSize.itemFont)
                 .lineLimit(1)
-                .foregroundStyle(isCompleted ? theme.secondaryTextColor : theme.textColor)
+                .foregroundStyle(isCompleted
+                    ? (renderingMode == .accented ? Color.secondary : theme.secondaryTextColor)
+                    : (renderingMode == .accented ? Color.primary : theme.textColor))
                 .strikethrough(isCompleted)
             Spacer()
             if theme.checkboxPosition == .trailing { checkbox }
@@ -195,23 +206,25 @@ struct TodoRowView: View {
 struct WidgetHeaderView: View {
     let entry: TodoWidgetEntry
 
+    @Environment(\.widgetRenderingMode) private var renderingMode
+
     var body: some View {
         HStack {
             Text(entry.listTitle)
                 .font(entry.theme.fontSize.headerFont)
-                .foregroundStyle(entry.theme.textColor)
+                .foregroundStyle(renderingMode == .accented ? Color.primary : entry.theme.textColor)
                 .lineLimit(1)
             Spacer()
             HStack(spacing: 6) {
                 if entry.theme.showRemainingCount {
                     Text("\(entry.totalPending) left")
                         .font(.caption)
-                        .foregroundStyle(entry.theme.secondaryTextColor)
+                        .foregroundStyle(renderingMode == .accented ? Color.secondary : entry.theme.secondaryTextColor)
                 }
                 if entry.theme.showCompletedCount {
                     Text("\(entry.totalCompleted) done")
                         .font(.caption)
-                        .foregroundStyle(entry.theme.tertiaryTextColor)
+                        .foregroundStyle(renderingMode == .accented ? Color(.tertiaryLabel) : entry.theme.tertiaryTextColor)
                 }
             }
         }
@@ -224,25 +237,29 @@ struct WidgetHeaderView: View {
 struct SmallWidgetView: View {
     let entry: TodoWidgetEntry
 
+    @Environment(\.widgetRenderingMode) private var renderingMode
+
     var body: some View {
         VStack(spacing: 6) {
             Image(systemName: entry.totalPending == 0 ? "checkmark.circle.fill" : "circle.dotted")
                 .font(.system(size: 32))
-                .foregroundStyle(entry.totalPending == 0 ? Color.green : entry.theme.accentColor)
+                .foregroundStyle(entry.totalPending == 0
+                    ? (renderingMode == .accented ? Color.primary : Color.green)
+                    : (renderingMode == .accented ? Color.primary : entry.theme.accentColor))
 
             Text("\(entry.totalPending)")
                 .font(.system(size: 48, weight: .bold))
                 .minimumScaleFactor(0.5)
-                .foregroundStyle(entry.theme.textColor)
+                .foregroundStyle(renderingMode == .accented ? Color.primary : entry.theme.textColor)
 
             Text(entry.listTitle)
                 .font(.caption)
-                .foregroundStyle(entry.theme.secondaryTextColor)
+                .foregroundStyle(renderingMode == .accented ? Color.secondary : entry.theme.secondaryTextColor)
                 .lineLimit(1)
 
             Text(entry.totalPending == 1 ? "task left" : "tasks left")
                 .font(.caption2)
-                .foregroundStyle(entry.theme.tertiaryTextColor)
+                .foregroundStyle(renderingMode == .accented ? Color(.tertiaryLabel) : entry.theme.tertiaryTextColor)
         }
         .containerBackground(for: .widget) {
             entry.theme.backgroundColor
