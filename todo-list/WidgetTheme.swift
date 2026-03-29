@@ -167,6 +167,7 @@ struct WidgetTheme: Codable, Identifiable {
     var backgroundColorComponents: ColorComponents?
     var textColorComponents: ColorComponents?
     var fontSize: WidgetFontSizeValue
+    var customFontSizePoints: Double?
     var rowHeight: WidgetRowHeightValue
     var checkboxPosition: WidgetCheckboxPositionValue
     var checkboxStyle: WidgetCheckboxStyleValue
@@ -176,7 +177,8 @@ struct WidgetTheme: Codable, Identifiable {
 
     init(id: UUID, name: String, accentColorComponents: ColorComponents,
          backgroundColorComponents: ColorComponents?, textColorComponents: ColorComponents?,
-         fontSize: WidgetFontSizeValue, rowHeight: WidgetRowHeightValue,
+         fontSize: WidgetFontSizeValue, customFontSizePoints: Double? = nil,
+         rowHeight: WidgetRowHeightValue,
          checkboxPosition: WidgetCheckboxPositionValue,
          checkboxStyle: WidgetCheckboxStyleValue = .circleDotted,
          showRemainingCount: Bool, showCompletedCount: Bool, showCompleted: Bool) {
@@ -186,6 +188,7 @@ struct WidgetTheme: Codable, Identifiable {
         self.backgroundColorComponents = backgroundColorComponents
         self.textColorComponents = textColorComponents
         self.fontSize = fontSize
+        self.customFontSizePoints = customFontSizePoints
         self.rowHeight = rowHeight
         self.checkboxPosition = checkboxPosition
         self.checkboxStyle = checkboxStyle
@@ -202,6 +205,7 @@ struct WidgetTheme: Codable, Identifiable {
         backgroundColorComponents = try c.decodeIfPresent(ColorComponents.self, forKey: .backgroundColorComponents)
         textColorComponents = try c.decodeIfPresent(ColorComponents.self, forKey: .textColorComponents)
         fontSize = try c.decode(WidgetFontSizeValue.self, forKey: .fontSize)
+        customFontSizePoints = try c.decodeIfPresent(Double.self, forKey: .customFontSizePoints)
         rowHeight = try c.decode(WidgetRowHeightValue.self, forKey: .rowHeight)
         checkboxPosition = try c.decode(WidgetCheckboxPositionValue.self, forKey: .checkboxPosition)
         checkboxStyle = (try? c.decodeIfPresent(WidgetCheckboxStyleValue.self, forKey: .checkboxStyle)) ?? .circleDotted
@@ -220,8 +224,25 @@ struct WidgetTheme: Codable, Identifiable {
         textColorComponents.map { $0.color.opacity(0.4) } ?? Color(.tertiaryLabel)
     }
 
+    var itemFont: Font {
+        if let pt = customFontSizePoints { return .system(size: pt) }
+        return fontSize.itemFont
+    }
+    var iconFont: Font {
+        if let pt = customFontSizePoints { return .system(size: max(pt - 2, 8)) }
+        return fontSize.iconFont
+    }
+    var headerFont: Font {
+        if let pt = customFontSizePoints { return .system(size: pt + 2) }
+        return fontSize.headerFont
+    }
+    var lineHeight: CGFloat {
+        if let pt = customFontSizePoints { return pt * 1.4 }
+        return fontSize.lineHeight
+    }
+
     var estimatedRowHeight: CGFloat {
-        fontSize.lineHeight + rowHeight.verticalPadding * 2
+        lineHeight + rowHeight.verticalPadding * 2
     }
 
     static let `default` = WidgetTheme(

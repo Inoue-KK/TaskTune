@@ -31,6 +31,13 @@ struct WidgetThemeEditView: View {
         if resolved.textColorComponents == nil {
             resolved.textColorComponents = ColorComponents.from(Color(.label))
         }
+        if resolved.customFontSizePoints == nil {
+            resolved.customFontSizePoints = switch resolved.fontSize {
+            case .small: 12
+            case .medium: 15
+            case .large: 17
+            }
+        }
         self._theme = State(initialValue: resolved)
         self.onSave = onSave
     }
@@ -99,11 +106,16 @@ struct WidgetThemeEditView: View {
                     }
 
                     Section("Layout") {
-                        Picker("Font Size", selection: $theme.fontSize) {
-                            ForEach(WidgetFontSizeValue.allCases, id: \.self) {
-                                Text($0.displayName).tag($0)
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack {
+                                Text("Font Size")
+                                Spacer()
+                                Text("\(Int(fontSizePoints)) pt")
+                                    .foregroundStyle(.secondary)
                             }
+                            Slider(value: fontSizeBinding, in: 8...32, step: 1)
                         }
+                        .padding(.vertical, 4)
                         Picker("Row Height", selection: $theme.rowHeight) {
                             ForEach(WidgetRowHeightValue.allCases, id: \.self) {
                                 Text($0.displayName).tag($0)
@@ -166,6 +178,17 @@ struct WidgetThemeEditView: View {
 
     private var scale: CGFloat {
         min(1.0, availableWidth / 329)
+    }
+
+    // MARK: - Font Size Bindings
+
+    private var fontSizePoints: Double { theme.customFontSizePoints ?? 15 }
+
+    private var fontSizeBinding: Binding<Double> {
+        Binding(
+            get: { theme.customFontSizePoints ?? 15 },
+            set: { theme.customFontSizePoints = $0 }
+        )
     }
 
     // MARK: - Color Bindings

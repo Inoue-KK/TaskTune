@@ -232,7 +232,7 @@ struct TodoRowView: View {
 
     private var checkbox: some View {
         Image(systemName: isCompleted ? theme.checkboxStyle.completedIcon : theme.checkboxStyle.pendingIcon)
-            .font(theme.fontSize.iconFont)
+            .font(theme.iconFont)
             .foregroundStyle(isCompleted ? checkboxCompletedColor : checkboxPendingColor)
     }
 
@@ -256,7 +256,7 @@ struct TodoRowView: View {
                 isCompleted ? AnyView(checkbox) : AnyView(interactiveCheckbox)
             }
             Text(title)
-                .font(theme.fontSize.itemFont)
+                .font(theme.itemFont)
                 .lineLimit(1)
                 .foregroundStyle(isCompleted
                     ? (renderingMode == .accented ? Color.secondary : theme.secondaryTextColor)
@@ -281,7 +281,7 @@ struct WidgetHeaderView: View {
     var body: some View {
         HStack {
             Text(entry.listTitle)
-                .font(entry.theme.fontSize.headerFont)
+                .font(entry.theme.headerFont)
                 .foregroundStyle(renderingMode == .accented ? Color.primary : entry.theme.textColor)
                 .lineLimit(1)
             Spacer()

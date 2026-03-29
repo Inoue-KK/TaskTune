@@ -29,7 +29,7 @@ private struct PreviewRowView: View {
 
     private var checkbox: some View {
         Image(systemName: isCompleted ? theme.checkboxStyle.completedIcon : theme.checkboxStyle.pendingIcon)
-            .font(theme.fontSize.iconFont)
+            .font(theme.iconFont)
             .foregroundStyle(isCompleted ? theme.secondaryTextColor : theme.accentColor)
     }
 
@@ -37,7 +37,7 @@ private struct PreviewRowView: View {
         HStack(spacing: 8) {
             if showCheckbox && theme.checkboxPosition == .leading { checkbox }
             Text(title)
-                .font(theme.fontSize.itemFont)
+                .font(theme.itemFont)
                 .lineLimit(1)
                 .foregroundStyle(isCompleted ? theme.secondaryTextColor : theme.textColor)
                 .strikethrough(isCompleted)
@@ -57,7 +57,7 @@ private struct PreviewHeaderView: View {
     var body: some View {
         HStack {
             Text(data.listTitle)
-                .font(theme.fontSize.headerFont)
+                .font(theme.headerFont)
                 .foregroundStyle(theme.textColor)
                 .lineLimit(1)
             Spacer()
