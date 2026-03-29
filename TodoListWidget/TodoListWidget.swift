@@ -84,6 +84,19 @@ struct ThemeNamesProvider: DynamicOptionsProvider {
     }
 }
 
+// MARK: - Widget Interaction Mode
+
+enum WidgetInteractionMode: String, AppEnum {
+    case interactive
+    case readOnly
+
+    static var typeDisplayRepresentation: TypeDisplayRepresentation = "操作モード"
+    static var caseDisplayRepresentations: [WidgetInteractionMode: DisplayRepresentation] = [
+        .interactive: "タップで完了",
+        .readOnly: "読み取り専用",
+    ]
+}
+
 // MARK: - Widget Configuration Intent
 
 struct SelectListIntent: WidgetConfigurationIntent {
@@ -95,6 +108,9 @@ struct SelectListIntent: WidgetConfigurationIntent {
 
     @Parameter(title: "テーマ", optionsProvider: ThemeNamesProvider())
     var themeName: String?
+
+    @Parameter(title: "操作モード", default: .interactive)
+    var interactionMode: WidgetInteractionMode
 }
 
 // MARK: - Entry
@@ -173,6 +189,7 @@ struct TodoWidgetProvider: AppIntentTimelineProvider {
                         pendingTodos: pending,
                         completedTodos: completed,
                         theme: theme,
+                        showCheckbox: configuration.interactionMode == .interactive,
                         justCompletedTitle: jc.todoTitle
                     )
                 }
@@ -182,7 +199,8 @@ struct TodoWidgetProvider: AppIntentTimelineProvider {
                     listTitle: list.title,
                     pendingTodos: sorted.filter { !$0.isCompleted }.map(\.title),
                     completedTodos: sorted.filter { $0.isCompleted }.map(\.title),
-                    theme: theme
+                    theme: theme,
+                    showCheckbox: configuration.interactionMode == .interactive
                 )
             }
         } catch {}
@@ -191,7 +209,8 @@ struct TodoWidgetProvider: AppIntentTimelineProvider {
             listTitle: "Todo",
             pendingTodos: [],
             completedTodos: [],
-            theme: theme
+            theme: theme,
+            showCheckbox: configuration.interactionMode == .interactive
         )
     }
 }
@@ -371,7 +390,7 @@ struct MediumWidgetView: View {
                 }
             } else {
                 ForEach(Array(toShow.enumerated()), id: \.offset) { _, title in
-                    TodoRowView(title: title, listTitle: entry.listTitle, isCompleted: title == entry.justCompletedTitle, theme: entry.theme)
+                    TodoRowView(title: title, listTitle: entry.listTitle, isCompleted: title == entry.justCompletedTitle, theme: entry.theme, showCheckbox: entry.showCheckbox)
                 }
                 if remaining > 0 {
                     Text("+ \(remaining) more")
@@ -423,7 +442,7 @@ struct LargeWidgetView: View {
                 }
             } else {
                 ForEach(Array(pendingToShow.enumerated()), id: \.offset) { _, title in
-                    TodoRowView(title: title, listTitle: entry.listTitle, isCompleted: title == entry.justCompletedTitle, theme: entry.theme)
+                    TodoRowView(title: title, listTitle: entry.listTitle, isCompleted: title == entry.justCompletedTitle, theme: entry.theme, showCheckbox: entry.showCheckbox)
                 }
                 if remaining > 0 {
                     Text("+ \(remaining) more")
@@ -435,7 +454,7 @@ struct LargeWidgetView: View {
                     Divider().padding(.vertical, 8)
                     if showCompletedSection {
                         ForEach(Array(entry.completedTodos.prefix(completedCount).enumerated()), id: \.offset) { _, title in
-                            TodoRowView(title: title, listTitle: entry.listTitle, isCompleted: true, theme: entry.theme)
+                            TodoRowView(title: title, listTitle: entry.listTitle, isCompleted: true, theme: entry.theme, showCheckbox: entry.showCheckbox)
                         }
                     } else {
                         Text("完了済みタスクなし")
