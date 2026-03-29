@@ -389,7 +389,7 @@ struct LargeWidgetView: View {
     private func todoList(availableHeight: CGFloat) -> some View {
         let showCompletedSection = entry.theme.showCompleted && !entry.completedTodos.isEmpty
         let rowH = entry.theme.estimatedRowHeight
-        let pendingHeight = showCompletedSection ? availableHeight * 0.6 : availableHeight
+        let pendingHeight = entry.theme.showCompleted ? availableHeight * 0.6 : availableHeight
         let completedHeight = availableHeight * 0.4
         let pendingCount = max(1, Int(pendingHeight / rowH))
         let completedCount = max(1, Int(completedHeight / rowH))
@@ -412,10 +412,17 @@ struct LargeWidgetView: View {
                         .foregroundStyle(entry.theme.tertiaryTextColor)
                         .padding(.top, 2)
                 }
-                if showCompletedSection {
+                if entry.theme.showCompleted {
                     Divider().padding(.vertical, 8)
-                    ForEach(Array(entry.completedTodos.prefix(completedCount).enumerated()), id: \.offset) { _, title in
-                        TodoRowView(title: title, listTitle: entry.listTitle, isCompleted: true, theme: entry.theme)
+                    if showCompletedSection {
+                        ForEach(Array(entry.completedTodos.prefix(completedCount).enumerated()), id: \.offset) { _, title in
+                            TodoRowView(title: title, listTitle: entry.listTitle, isCompleted: true, theme: entry.theme)
+                        }
+                    } else {
+                        Text("完了済みタスクなし")
+                            .font(.caption)
+                            .foregroundStyle(entry.theme.tertiaryTextColor)
+                            .padding(.top, 2)
                     }
                 }
             }
