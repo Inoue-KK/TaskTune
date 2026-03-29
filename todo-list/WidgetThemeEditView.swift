@@ -9,6 +9,7 @@ import WidgetKit
 struct WidgetThemeEditView: View {
     @State private var theme: WidgetTheme
     @State private var previewSize: PreviewSize = .medium
+    @State private var availableWidth: CGFloat = 329
 
     let onSave: (WidgetTheme) -> Void
 
@@ -39,6 +40,9 @@ struct WidgetThemeEditView: View {
             VStack(spacing: 0) {
                 // プレビュー（固定）
                 VStack(spacing: 16) {
+                    Color.clear
+                        .frame(height: 0)
+                        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { availableWidth = $0 }
                     // カスタムサイズピッカー
                     HStack(spacing: 6) {
                         ForEach(PreviewSize.allCases, id: \.self) { size in
@@ -151,23 +155,17 @@ struct WidgetThemeEditView: View {
             SmallWidgetPreview(theme: theme, data: Self.previewData)
         case .medium:
             MediumWidgetPreview(theme: theme, data: Self.previewData)
-                .scaleEffect(mediumScale, anchor: .center)
-                .frame(width: 329 * mediumScale, height: 155 * mediumScale)
+                .scaleEffect(scale, anchor: .center)
+                .frame(width: 329 * scale, height: 155 * scale)
         case .large:
             LargeWidgetPreview(theme: theme, data: Self.previewData)
-                .scaleEffect(largeScale, anchor: .center)
-                .frame(width: 329 * largeScale, height: 345 * largeScale)
+                .scaleEffect(scale, anchor: .center)
+                .frame(width: 329 * scale, height: 345 * scale)
         }
     }
 
-    private var mediumScale: CGFloat {
-        let available = UIScreen.main.bounds.width - 64
-        return min(1.0, available / 329)
-    }
-
-    private var largeScale: CGFloat {
-        let available = UIScreen.main.bounds.width - 64
-        return min(1.0, available / 329)
+    private var scale: CGFloat {
+        min(1.0, availableWidth / 329)
     }
 
     // MARK: - Color Bindings
