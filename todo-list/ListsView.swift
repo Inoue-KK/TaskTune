@@ -16,6 +16,7 @@ struct ListsView: View {
     @State private var showingAddSheet = false
     @State private var renamingList: TodoList?
     @State private var showingWidgetThemeSheet = false
+    @State private var listToDelete: TodoList?
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -77,6 +78,24 @@ struct ListsView: View {
         .sheet(isPresented: $showingWidgetThemeSheet) {
             WidgetThemeListView()
         }
+        .confirmationDialog(
+            "Delete \"\(listToDelete?.title ?? "")\"?",
+            isPresented: Binding(
+                get: { listToDelete != nil },
+                set: { if !$0 { listToDelete = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Delete List", role: .destructive) {
+                if let list = listToDelete {
+                    context.delete(list)
+                    listToDelete = nil
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("All todos in this list will also be deleted.")
+        }
     }
 
     // MARK: - List of Lists
@@ -87,9 +106,9 @@ struct ListsView: View {
                 NavigationLink(value: list) {
                     rowContent(for: list)
                 }
-                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                     Button(role: .destructive) {
-                        context.delete(list)
+                        listToDelete = list
                     } label: {
                         Label("Delete", systemImage: "trash")
                     }
