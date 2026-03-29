@@ -90,26 +90,26 @@ enum WidgetInteractionMode: String, AppEnum {
     case interactive
     case readOnly
 
-    static var typeDisplayRepresentation: TypeDisplayRepresentation = "操作モード"
+    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Interaction Mode"
     static var caseDisplayRepresentations: [WidgetInteractionMode: DisplayRepresentation] = [
-        .interactive: "タップで完了",
-        .readOnly: "読み取り専用",
+        .interactive: "Tap to Complete",
+        .readOnly: "Read Only",
     ]
 }
 
 // MARK: - Widget Configuration Intent
 
 struct SelectListIntent: WidgetConfigurationIntent {
-    static var title: LocalizedStringResource = "ウィジェット設定"
-    static var description = IntentDescription("リストとテーマを選択してください")
+    static var title: LocalizedStringResource = "Widget Settings"
+    static var description = IntentDescription("Select a list and theme.")
 
-    @Parameter(title: "リスト", optionsProvider: ListNamesProvider())
+    @Parameter(title: "List", optionsProvider: ListNamesProvider())
     var listTitle: String?
 
-    @Parameter(title: "テーマ", optionsProvider: ThemeNamesProvider())
+    @Parameter(title: "Theme", optionsProvider: ThemeNamesProvider())
     var themeName: String?
 
-    @Parameter(title: "操作モード", default: .interactive)
+    @Parameter(title: "Interaction Mode", default: .interactive)
     var interactionMode: WidgetInteractionMode
 }
 
@@ -457,7 +457,7 @@ struct LargeWidgetView: View {
                             TodoRowView(title: title, listTitle: entry.listTitle, isCompleted: true, theme: entry.theme, showCheckbox: entry.showCheckbox)
                         }
                     } else {
-                        Text("完了済みタスクなし")
+                        Text("No completed tasks")
                             .font(.caption)
                             .foregroundStyle(entry.theme.tertiaryTextColor)
                             .padding(.top, 2)
@@ -505,7 +505,7 @@ struct TodoListWidget: Widget {
             TodoWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("Todo List")
-        .description("リストとテーマを自由にカスタマイズできます。")
+        .description("Customize the list and theme.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
