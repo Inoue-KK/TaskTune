@@ -107,6 +107,57 @@ enum WidgetCheckboxPositionValue: String, Codable, CaseIterable {
     }
 }
 
+// MARK: - Checkbox Style
+
+enum WidgetCheckboxStyleValue: String, Codable, CaseIterable {
+    case circleDotted, circle, square, roundedSquare, diamond, seal, bubble, heart, star, bookmark
+
+    var displayName: String {
+        switch self {
+        case .circleDotted:  "Dotted Circle"
+        case .circle:        "Circle"
+        case .square:        "Square"
+        case .roundedSquare: "Rounded Square"
+        case .diamond:       "Diamond"
+        case .seal:          "Seal"
+        case .bubble:        "Bubble"
+        case .heart:         "Heart"
+        case .star:          "Star"
+        case .bookmark:      "Bookmark"
+        }
+    }
+
+    var pendingIcon: String {
+        switch self {
+        case .circleDotted:  "circle.dotted"
+        case .circle:        "circle"
+        case .square:        "square"
+        case .roundedSquare: "app"
+        case .diamond:       "diamond"
+        case .seal:          "seal"
+        case .bubble:        "bubble"
+        case .heart:         "heart"
+        case .star:          "star"
+        case .bookmark:      "bookmark"
+        }
+    }
+
+    var completedIcon: String {
+        switch self {
+        case .circleDotted:  "checkmark.circle.fill"
+        case .circle:        "checkmark.circle.fill"
+        case .square:        "checkmark.square.fill"
+        case .roundedSquare: "checkmark.app.fill"
+        case .diamond:       "checkmark.diamond.fill"
+        case .seal:          "checkmark.seal.fill"
+        case .bubble:        "checkmark.bubble.fill"
+        case .heart:         "heart.fill"
+        case .star:          "star.fill"
+        case .bookmark:      "bookmark.fill"
+        }
+    }
+}
+
 // MARK: - Widget Theme
 
 struct WidgetTheme: Codable, Identifiable {
@@ -118,9 +169,46 @@ struct WidgetTheme: Codable, Identifiable {
     var fontSize: WidgetFontSizeValue
     var rowHeight: WidgetRowHeightValue
     var checkboxPosition: WidgetCheckboxPositionValue
+    var checkboxStyle: WidgetCheckboxStyleValue
     var showRemainingCount: Bool
     var showCompletedCount: Bool
     var showCompleted: Bool
+
+    init(id: UUID, name: String, accentColorComponents: ColorComponents,
+         backgroundColorComponents: ColorComponents?, textColorComponents: ColorComponents?,
+         fontSize: WidgetFontSizeValue, rowHeight: WidgetRowHeightValue,
+         checkboxPosition: WidgetCheckboxPositionValue,
+         checkboxStyle: WidgetCheckboxStyleValue = .circleDotted,
+         showRemainingCount: Bool, showCompletedCount: Bool, showCompleted: Bool) {
+        self.id = id
+        self.name = name
+        self.accentColorComponents = accentColorComponents
+        self.backgroundColorComponents = backgroundColorComponents
+        self.textColorComponents = textColorComponents
+        self.fontSize = fontSize
+        self.rowHeight = rowHeight
+        self.checkboxPosition = checkboxPosition
+        self.checkboxStyle = checkboxStyle
+        self.showRemainingCount = showRemainingCount
+        self.showCompletedCount = showCompletedCount
+        self.showCompleted = showCompleted
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        accentColorComponents = try c.decode(ColorComponents.self, forKey: .accentColorComponents)
+        backgroundColorComponents = try c.decodeIfPresent(ColorComponents.self, forKey: .backgroundColorComponents)
+        textColorComponents = try c.decodeIfPresent(ColorComponents.self, forKey: .textColorComponents)
+        fontSize = try c.decode(WidgetFontSizeValue.self, forKey: .fontSize)
+        rowHeight = try c.decode(WidgetRowHeightValue.self, forKey: .rowHeight)
+        checkboxPosition = try c.decode(WidgetCheckboxPositionValue.self, forKey: .checkboxPosition)
+        checkboxStyle = (try? c.decodeIfPresent(WidgetCheckboxStyleValue.self, forKey: .checkboxStyle)) ?? .circleDotted
+        showRemainingCount = try c.decode(Bool.self, forKey: .showRemainingCount)
+        showCompletedCount = try c.decode(Bool.self, forKey: .showCompletedCount)
+        showCompleted = try c.decode(Bool.self, forKey: .showCompleted)
+    }
 
     var accentColor: Color { accentColorComponents.color }
     var backgroundColor: Color { backgroundColorComponents?.color ?? Color(.systemBackground) }

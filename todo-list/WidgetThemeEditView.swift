@@ -128,6 +128,11 @@ struct WidgetThemeEditView: View {
                                 Text($0.displayName).tag($0)
                             }
                         }
+                        Picker("スタイル", selection: $theme.checkboxStyle) {
+                            ForEach(WidgetCheckboxStyleValue.allCases, id: \.self) { style in
+                                Label(style.displayName, systemImage: style.pendingIcon).tag(style)
+                            }
+                        }
                     }
 
                     // 表示設定

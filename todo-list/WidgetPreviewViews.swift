@@ -27,7 +27,7 @@ private struct PreviewRowView: View {
     let theme: WidgetTheme
 
     private var checkbox: some View {
-        Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+        Image(systemName: isCompleted ? theme.checkboxStyle.completedIcon : theme.checkboxStyle.pendingIcon)
             .font(theme.fontSize.iconFont)
             .foregroundStyle(isCompleted ? theme.secondaryTextColor : theme.accentColor)
     }
