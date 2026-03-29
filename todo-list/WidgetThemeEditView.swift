@@ -33,83 +33,112 @@ struct WidgetThemeEditView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                // プレビューセクション
-                Section {
-                    VStack(spacing: 12) {
-                        Picker("Size", selection: $previewSize) {
-                            ForEach(PreviewSize.allCases, id: \.self) {
-                                Text($0.rawValue).tag($0)
+            VStack(spacing: 0) {
+                // プレビュー（固定）
+                VStack(spacing: 16) {
+                    // カスタムサイズピッカー
+                    HStack(spacing: 6) {
+                        ForEach(PreviewSize.allCases, id: \.self) { size in
+                            Button {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    previewSize = size
+                                }
+                            } label: {
+                                Text(size.rawValue)
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(previewSize == size ? .white : Color(.secondaryLabel))
+                                    .padding(.horizontal, 18)
+                                    .padding(.vertical, 7)
+                                    .background(
+                                        previewSize == size
+                                            ? theme.accentColorComponents.color
+                                            : Color(.tertiarySystemFill),
+                                        in: Capsule()
+                                    )
+                                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: previewSize)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+
+                    previewContent
+                        .shadow(color: theme.accentColorComponents.color.opacity(0.25), radius: 16, y: 8)
+                        .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
+                        .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .center)))
+                        .id(previewSize)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 20)
+                .frame(maxWidth: .infinity)
+                .background {
+                    ZStack {
+                        Color(.secondarySystemBackground)
+                        theme.accentColorComponents.color
+                            .opacity(0.08)
+                    }
+                    .animation(.easeInOut(duration: 0.4), value: theme.accentColorComponents.color)
+                }
+
+                // スクロール可能な設定リスト
+                List {
+                    // テーマ名
+                    Section("テーマ名") {
+                        TextField("名前を入力", text: $theme.name)
+                    }
+
+                    // カラー設定
+                    Section("カラー") {
+                        ColorPicker("アクセントカラー", selection: accentColorBinding, supportsOpacity: false)
+
+                        Toggle("背景色をカスタマイズ", isOn: $useCustomBackground)
+                            .onChange(of: useCustomBackground) { _, newValue in
+                                theme.backgroundColorComponents = newValue
+                                    ? ColorComponents.from(.white)
+                                    : nil
+                            }
+                        if useCustomBackground {
+                            ColorPicker("背景色", selection: backgroundColorBinding, supportsOpacity: false)
+                        }
+
+                        Toggle("テキスト色をカスタマイズ", isOn: $useCustomTextColor)
+                            .onChange(of: useCustomTextColor) { _, newValue in
+                                theme.textColorComponents = newValue
+                                    ? ColorComponents.from(Color(.label))
+                                    : nil
+                            }
+                        if useCustomTextColor {
+                            ColorPicker("テキスト色", selection: textColorBinding, supportsOpacity: false)
+                        }
+                    }
+
+                    // レイアウト設定
+                    Section("レイアウト") {
+                        Picker("文字サイズ", selection: $theme.fontSize) {
+                            ForEach(WidgetFontSizeValue.allCases, id: \.self) {
+                                Text($0.displayName).tag($0)
                             }
                         }
-                        .pickerStyle(.segmented)
-
-                        previewContent
-                            .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
-                    }
-                    .padding(.vertical, 8)
-                    .frame(maxWidth: .infinity)
-                }
-                .listRowBackground(Color(.secondarySystemBackground))
-                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-
-                // テーマ名
-                Section("テーマ名") {
-                    TextField("名前を入力", text: $theme.name)
-                }
-
-                // カラー設定
-                Section("カラー") {
-                    ColorPicker("アクセントカラー", selection: accentColorBinding, supportsOpacity: false)
-
-                    Toggle("背景色をカスタマイズ", isOn: $useCustomBackground)
-                        .onChange(of: useCustomBackground) { _, newValue in
-                            theme.backgroundColorComponents = newValue
-                                ? ColorComponents.from(.white)
-                                : nil
+                        Picker("行の高さ", selection: $theme.rowHeight) {
+                            ForEach(WidgetRowHeightValue.allCases, id: \.self) {
+                                Text($0.displayName).tag($0)
+                            }
                         }
-                    if useCustomBackground {
-                        ColorPicker("背景色", selection: backgroundColorBinding, supportsOpacity: false)
-                    }
-
-                    Toggle("テキスト色をカスタマイズ", isOn: $useCustomTextColor)
-                        .onChange(of: useCustomTextColor) { _, newValue in
-                            theme.textColorComponents = newValue
-                                ? ColorComponents.from(Color(.label))
-                                : nil
-                        }
-                    if useCustomTextColor {
-                        ColorPicker("テキスト色", selection: textColorBinding, supportsOpacity: false)
-                    }
-                }
-
-                // レイアウト設定
-                Section("レイアウト") {
-                    Picker("文字サイズ", selection: $theme.fontSize) {
-                        ForEach(WidgetFontSizeValue.allCases, id: \.self) {
-                            Text($0.displayName).tag($0)
+                        Picker("チェックボックス位置", selection: $theme.checkboxPosition) {
+                            ForEach(WidgetCheckboxPositionValue.allCases, id: \.self) {
+                                Text($0.displayName).tag($0)
+                            }
                         }
                     }
-                    Picker("行の高さ", selection: $theme.rowHeight) {
-                        ForEach(WidgetRowHeightValue.allCases, id: \.self) {
-                            Text($0.displayName).tag($0)
-                        }
-                    }
-                    Picker("チェックボックス位置", selection: $theme.checkboxPosition) {
-                        ForEach(WidgetCheckboxPositionValue.allCases, id: \.self) {
-                            Text($0.displayName).tag($0)
-                        }
-                    }
-                }
 
-                // 表示設定
-                Section("表示") {
-                    Toggle("残タスク数を表示", isOn: $theme.showRemainingCount)
-                    Toggle("完了数を表示", isOn: $theme.showCompletedCount)
-                    Toggle("完了済みも表示（Largeのみ）", isOn: $theme.showCompleted)
+                    // 表示設定
+                    Section("表示") {
+                        Toggle("残タスク数を表示", isOn: $theme.showRemainingCount)
+                        Toggle("完了数を表示", isOn: $theme.showCompletedCount)
+                        Toggle("完了済みも表示（Largeのみ）", isOn: $theme.showCompleted)
+                    }
                 }
+                .listStyle(.insetGrouped)
             }
-            .listStyle(.insetGrouped)
             .navigationTitle(theme.name.isEmpty ? "新しいテーマ" : theme.name)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
