@@ -8,8 +8,6 @@ import WidgetKit
 
 struct WidgetThemeEditView: View {
     @State private var theme: WidgetTheme
-    @State private var useCustomBackground: Bool
-    @State private var useCustomTextColor: Bool
     @State private var previewSize: PreviewSize = .medium
 
     let onSave: (WidgetTheme) -> Void
@@ -25,9 +23,14 @@ struct WidgetThemeEditView: View {
     }
 
     init(theme: WidgetTheme, onSave: @escaping (WidgetTheme) -> Void) {
-        self._theme = State(initialValue: theme)
-        self._useCustomBackground = State(initialValue: theme.backgroundColorComponents != nil)
-        self._useCustomTextColor = State(initialValue: theme.textColorComponents != nil)
+        var resolved = theme
+        if resolved.backgroundColorComponents == nil {
+            resolved.backgroundColorComponents = ColorComponents.from(Color(.systemBackground))
+        }
+        if resolved.textColorComponents == nil {
+            resolved.textColorComponents = ColorComponents.from(Color(.label))
+        }
+        self._theme = State(initialValue: resolved)
         self.onSave = onSave
     }
 
@@ -89,26 +92,8 @@ struct WidgetThemeEditView: View {
                     // カラー設定
                     Section("カラー") {
                         ColorPicker("アクセントカラー", selection: accentColorBinding, supportsOpacity: false)
-
-                        Toggle("背景色をカスタマイズ", isOn: $useCustomBackground)
-                            .onChange(of: useCustomBackground) { _, newValue in
-                                theme.backgroundColorComponents = newValue
-                                    ? ColorComponents.from(.white)
-                                    : nil
-                            }
-                        if useCustomBackground {
-                            ColorPicker("背景色", selection: backgroundColorBinding, supportsOpacity: false)
-                        }
-
-                        Toggle("テキスト色をカスタマイズ", isOn: $useCustomTextColor)
-                            .onChange(of: useCustomTextColor) { _, newValue in
-                                theme.textColorComponents = newValue
-                                    ? ColorComponents.from(Color(.label))
-                                    : nil
-                            }
-                        if useCustomTextColor {
-                            ColorPicker("テキスト色", selection: textColorBinding, supportsOpacity: false)
-                        }
+                        ColorPicker("背景色", selection: backgroundColorBinding, supportsOpacity: false)
+                        ColorPicker("テキスト色", selection: textColorBinding, supportsOpacity: false)
                     }
 
                     // レイアウト設定
