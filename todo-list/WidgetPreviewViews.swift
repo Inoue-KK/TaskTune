@@ -25,6 +25,7 @@ private struct PreviewRowView: View {
     let title: String
     let isCompleted: Bool
     let theme: WidgetTheme
+    var showCheckbox: Bool = true
 
     private var checkbox: some View {
         Image(systemName: isCompleted ? theme.checkboxStyle.completedIcon : theme.checkboxStyle.pendingIcon)
@@ -34,14 +35,14 @@ private struct PreviewRowView: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            if theme.checkboxPosition == .leading { checkbox }
+            if showCheckbox && theme.checkboxPosition == .leading { checkbox }
             Text(title)
                 .font(theme.fontSize.itemFont)
                 .lineLimit(1)
                 .foregroundStyle(isCompleted ? theme.secondaryTextColor : theme.textColor)
                 .strikethrough(isCompleted)
             Spacer()
-            if theme.checkboxPosition == .trailing { checkbox }
+            if showCheckbox && theme.checkboxPosition == .trailing { checkbox }
         }
         .padding(.vertical, theme.rowHeight.verticalPadding)
     }
@@ -83,29 +84,47 @@ struct SmallWidgetPreview: View {
     let theme: WidgetTheme
     let data: WidgetPreviewData
 
+    private var maxItemCount: Int {
+        max(1, Int(111 / theme.estimatedRowHeight))
+    }
+
     var body: some View {
-        VStack(spacing: 6) {
-            Image(systemName: data.totalPending == 0 ? "checkmark.circle.fill" : "circle.dotted")
-                .font(.system(size: 32))
-                .foregroundStyle(data.totalPending == 0 ? Color.green : theme.accentColor)
-
-            Text("\(data.totalPending)")
-                .font(.system(size: 48, weight: .bold))
-                .minimumScaleFactor(0.5)
-                .foregroundStyle(theme.textColor)
-
-            Text(data.listTitle)
-                .font(.caption)
-                .foregroundStyle(theme.secondaryTextColor)
-                .lineLimit(1)
-
-            Text(data.totalPending == 1 ? "task left" : "tasks left")
-                .font(.caption2)
-                .foregroundStyle(theme.tertiaryTextColor)
+        VStack(alignment: .leading, spacing: 0) {
+            PreviewHeaderView(data: data, theme: theme)
+            Divider().padding(.bottom, 1)
+            pendingList
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 12)
         .frame(width: 155, height: 155)
         .background(theme.backgroundColor)
         .clipShape(RoundedRectangle(cornerRadius: 22))
+    }
+
+    @ViewBuilder
+    private var pendingList: some View {
+        let toShow = Array(data.pendingTodos.prefix(maxItemCount))
+        let remaining = data.totalPending - toShow.count
+
+        VStack(alignment: .leading, spacing: 0) {
+            if data.pendingTodos.isEmpty {
+                HStack {
+                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                    Text("All done!").font(.caption).foregroundStyle(theme.secondaryTextColor)
+                }
+            } else {
+                ForEach(Array(toShow.enumerated()), id: \.offset) { _, title in
+                    PreviewRowView(title: title, isCompleted: false, theme: theme, showCheckbox: true)
+                }
+                if remaining > 0 {
+                    Text("+ \(remaining) more")
+                        .font(.caption2)
+                        .foregroundStyle(theme.tertiaryTextColor)
+                        .padding(.top, 2)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

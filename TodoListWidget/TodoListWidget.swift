@@ -105,6 +105,7 @@ struct TodoWidgetEntry: TimelineEntry {
     let pendingTodos: [String]
     let completedTodos: [String]
     let theme: WidgetTheme
+    var showCheckbox: Bool = true
     var justCompletedTitle: String? = nil
 
     var totalPending: Int { pendingTodos.count }
@@ -202,6 +203,7 @@ struct TodoRowView: View {
     let listTitle: String
     let isCompleted: Bool
     let theme: WidgetTheme
+    var showCheckbox: Bool = true
 
     @Environment(\.widgetRenderingMode) private var renderingMode
 
@@ -231,7 +233,7 @@ struct TodoRowView: View {
 
     private var rowContent: some View {
         HStack(spacing: 8) {
-            if theme.checkboxPosition == .leading {
+            if showCheckbox && theme.checkboxPosition == .leading {
                 isCompleted ? AnyView(checkbox) : AnyView(interactiveCheckbox)
             }
             Text(title)
@@ -242,7 +244,7 @@ struct TodoRowView: View {
                     : (renderingMode == .accented ? Color.primary : theme.textColor))
                 .strikethrough(isCompleted)
             Spacer()
-            if theme.checkboxPosition == .trailing {
+            if showCheckbox && theme.checkboxPosition == .trailing {
                 isCompleted ? AnyView(checkbox) : AnyView(interactiveCheckbox)
             }
         }
@@ -288,31 +290,48 @@ struct SmallWidgetView: View {
 
     @Environment(\.widgetRenderingMode) private var renderingMode
 
+    // Small widget content area: ~155pt height, minus 24pt vertical padding, ~18pt header, ~2pt divider ≈ 111pt for items
+    private var maxItemCount: Int {
+        max(1, Int(111 / entry.theme.estimatedRowHeight))
+    }
+
     var body: some View {
-        VStack(spacing: 6) {
-            Image(systemName: entry.totalPending == 0 ? "checkmark.circle.fill" : "circle.dotted")
-                .font(.system(size: 32))
-                .foregroundStyle(entry.totalPending == 0
-                    ? (renderingMode == .accented ? Color.primary : Color.green)
-                    : (renderingMode == .accented ? Color.primary : entry.theme.accentColor))
-
-            Text("\(entry.totalPending)")
-                .font(.system(size: 48, weight: .bold))
-                .minimumScaleFactor(0.5)
-                .foregroundStyle(renderingMode == .accented ? Color.primary : entry.theme.textColor)
-
-            Text(entry.listTitle)
-                .font(.caption)
-                .foregroundStyle(renderingMode == .accented ? Color.secondary : entry.theme.secondaryTextColor)
-                .lineLimit(1)
-
-            Text(entry.totalPending == 1 ? "task left" : "tasks left")
-                .font(.caption2)
-                .foregroundStyle(renderingMode == .accented ? Color(.tertiaryLabel) : entry.theme.tertiaryTextColor)
+        VStack(alignment: .leading, spacing: 0) {
+            WidgetHeaderView(entry: entry)
+            Divider().padding(.bottom, 1)
+            pendingList
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 12)
         .containerBackground(for: .widget) {
             entry.theme.backgroundColor
         }
+    }
+
+    @ViewBuilder
+    private var pendingList: some View {
+        let toShow = Array(entry.pendingTodos.prefix(maxItemCount))
+        let remaining = entry.totalPending - toShow.count
+
+        VStack(alignment: .leading, spacing: 0) {
+            if entry.pendingTodos.isEmpty {
+                HStack {
+                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                    Text("All done!").font(.caption).foregroundStyle(entry.theme.secondaryTextColor)
+                }
+            } else {
+                ForEach(Array(toShow.enumerated()), id: \.offset) { _, title in
+                    TodoRowView(title: title, listTitle: entry.listTitle, isCompleted: title == entry.justCompletedTitle, theme: entry.theme, showCheckbox: entry.showCheckbox)
+                }
+                if remaining > 0 {
+                    Text("+ \(remaining) more")
+                        .font(.caption2)
+                        .foregroundStyle(renderingMode == .accented ? Color(.tertiaryLabel) : entry.theme.tertiaryTextColor)
+                        .padding(.top, 2)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
