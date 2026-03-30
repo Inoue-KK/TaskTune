@@ -12,8 +12,15 @@ import SwiftUI
 
 struct WidgetPreviewData {
     var listTitle: String = "My List"
-    var pendingTodos: [String] = ["Buy groceries", "Call dentist", "Read book", "Exercise"]
-    var completedTodos: [String] = ["Wake up", "Make coffee"]
+    var pendingTodos: [String] = [
+        "Buy groceries", "Call dentist", "Read book", "Exercise",
+        "Reply to emails", "Clean the desk", "Plan weekend trip",
+        "Fix kitchen light", "Water the plants", "Schedule haircut",
+        "Renew subscription", "Backup photos"
+    ]
+    var completedTodos: [String] = [
+        "Wake up", "Make coffee", "Morning run", "Take vitamins", "Check calendar"
+    ]
 
     var totalPending: Int { pendingTodos.count }
     var totalCompleted: Int { completedTodos.count }
