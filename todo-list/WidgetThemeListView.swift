@@ -80,7 +80,10 @@ struct WidgetThemeListView: View {
                             .foregroundStyle(.tertiary)
                     }
                     .padding(.vertical, 4)
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
+                .alignmentGuide(.listRowSeparatorLeading) { d in d[.leading] }
             }
             .onDelete { indexSet in
                 themes.remove(atOffsets: indexSet)
