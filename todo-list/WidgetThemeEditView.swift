@@ -10,6 +10,8 @@ struct WidgetThemeEditView: View {
     @State private var theme: WidgetTheme
     @State private var previewSize: PreviewSize = .medium
     @State private var availableWidth: CGFloat = 329
+    @State private var showNameError = false
+    @State private var scrollToName = false
 
     let onSave: (WidgetTheme) -> Void
 
@@ -94,10 +96,25 @@ struct WidgetThemeEditView: View {
                 }
 
                 // スクロール可能な設定リスト
+                ScrollViewReader { proxy in
                 List {
-                    Section("Theme Name") {
+                    Section(
+                        header: Text("Theme Name"),
+                        footer: Group {
+                            if showNameError {
+                                Text("Name is required.")
+                                    .foregroundStyle(.red)
+                            }
+                        }
+                    ) {
                         TextField("Enter a name", text: $theme.name)
+                            .onChange(of: theme.name) { _, _ in
+                                if !theme.name.trimmingCharacters(in: .whitespaces).isEmpty {
+                                    showNameError = false
+                                }
+                            }
                     }
+                    .id("nameField")
 
                     Section("Colors") {
                         ColorPicker("Accent Color", selection: accentColorBinding, supportsOpacity: false)
@@ -140,6 +157,13 @@ struct WidgetThemeEditView: View {
                     }
                 }
                 .listStyle(.insetGrouped)
+                .onChange(of: scrollToName) { _, newValue in
+                    if newValue {
+                        withAnimation { proxy.scrollTo("nameField", anchor: .top) }
+                        scrollToName = false
+                    }
+                }
+                } // ScrollViewReader
             }
             .navigationTitle(theme.name.isEmpty ? "New Theme" : theme.name)
             .navigationBarTitleDisplayMode(.inline)
@@ -149,10 +173,19 @@ struct WidgetThemeEditView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        onSave(theme)
-                        dismiss()
+                        if theme.name.trimmingCharacters(in: .whitespaces).isEmpty {
+                            showNameError = true
+                            scrollToName = true
+                        } else {
+                            onSave(theme)
+                            dismiss()
+                        }
                     }
-                    .disabled(theme.name.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .foregroundStyle(
+                        theme.name.trimmingCharacters(in: .whitespaces).isEmpty
+                            ? Color(.tertiaryLabel)
+                            : Color.accentColor
+                    )
                 }
             }
         }
