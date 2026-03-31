@@ -49,8 +49,23 @@ struct ListsView: View {
                 }
                 .padding(.horizontal)
                 .padding(.top, 8)
-                .padding(.bottom, 4)
-                .background(.clear)
+                .padding(.bottom, 28)
+                .background {
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .mask {
+                            LinearGradient(
+                                stops: [
+                                    .init(color: .black, location: 0),
+                                    .init(color: .black, location: 0.75),
+                                    .init(color: .clear, location: 1.0)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        }
+                        .ignoresSafeArea()
+                }
             }
         }
         .onAppear { lists = savedLists }
@@ -102,6 +117,7 @@ struct ListsView: View {
 
     private var listOfLists: some View {
         List {
+            Section(header: Color.clear.frame(height: 0).listRowInsets(EdgeInsets())) {
             ForEach(lists) { list in
                 NavigationLink(value: list) {
                     rowContent(for: list)
@@ -128,8 +144,11 @@ struct ListsView: View {
                     list.sortOrder = index
                 }
             }
+            } // Section
         }
         .listStyle(.insetGrouped)
+        .environment(\.defaultMinListHeaderHeight, 0)
+        .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 104) }
         .navigationDestination(for: TodoList.self) { list in
             ContentView(todoList: list)
         }
