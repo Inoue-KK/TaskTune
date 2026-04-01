@@ -7,12 +7,12 @@
 
 import SwiftUI
 import SwiftData
-import AudioToolbox
 
 struct ContentView: View {
     @Environment(\.modelContext) private var context
     @AppStorage("soundEnabled") private var soundEnabled = true
     @AppStorage("hapticEnabled") private var hapticEnabled = true
+    @AppStorage("selectedSound") private var selectedSoundRaw = CompletionSound.bubble.rawValue
     @State private var showingAddSheet = false
     @State private var showingRenameSheet = false
     @State private var hapticTrigger = false
@@ -113,7 +113,9 @@ struct ContentView: View {
                     todo.isCompleted.toggle()
                 }
                 if completing {
-                    if soundEnabled { AudioServicesPlaySystemSound(1054) }
+                    if soundEnabled {
+                        playSound(CompletionSound(rawValue: selectedSoundRaw) ?? .bubble)
+                    }
                     if hapticEnabled { hapticTrigger.toggle() }
                 }
             } label: {
