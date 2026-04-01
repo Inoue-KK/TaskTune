@@ -15,7 +15,7 @@ struct ListsView: View {
     @State private var path = NavigationPath()
     @State private var showingAddSheet = false
     @State private var renamingList: TodoList?
-    @State private var showingWidgetThemeSheet = false
+    @State private var showingSettings = false
     @State private var listToDelete: TodoList?
 
     var body: some View {
@@ -31,41 +31,19 @@ struct ListsView: View {
 
                 addButton
             }
-            .navigationTitle("")
-            .toolbar(.hidden, for: .navigationBar)
-            .safeAreaInset(edge: .top) {
-                HStack(alignment: .firstTextBaseline) {
-                    Text("Lists")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                    Spacer()
+            .navigationTitle("Lists")
+            .toolbarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        showingWidgetThemeSheet = true
+                        showingSettings = true
                     } label: {
-                        Image(systemName: "square.grid.2x2")
-                            .font(.title3)
-                            .foregroundStyle(.primary)
+                        Image(systemName: "gearshape")
                     }
                 }
-                .padding(.horizontal)
-                .padding(.top, 8)
-                .padding(.bottom, 28)
-                .background {
-                    Rectangle()
-                        .fill(.ultraThinMaterial)
-                        .mask {
-                            LinearGradient(
-                                stops: [
-                                    .init(color: .black, location: 0),
-                                    .init(color: .black, location: 0.75),
-                                    .init(color: .clear, location: 1.0)
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        }
-                        .ignoresSafeArea()
-                }
+            }
+            .navigationDestination(isPresented: $showingSettings) {
+                SettingsView()
             }
         }
         .onAppear { lists = savedLists }
@@ -89,9 +67,6 @@ struct ListsView: View {
             AddListView(nextSortOrder: lists.count)
                 .presentationDetents([.height(280)])
                 .presentationCornerRadius(20)
-        }
-        .sheet(isPresented: $showingWidgetThemeSheet) {
-            WidgetThemeListView()
         }
         .confirmationDialog(
             "Delete \"\(listToDelete?.title ?? "")\"?",
@@ -117,7 +92,6 @@ struct ListsView: View {
 
     private var listOfLists: some View {
         List {
-            Section(header: Color.clear.frame(height: 0).listRowInsets(EdgeInsets())) {
             ForEach(lists) { list in
                 NavigationLink(value: list) {
                     rowContent(for: list)
@@ -144,10 +118,8 @@ struct ListsView: View {
                     list.sortOrder = index
                 }
             }
-            } // Section
         }
         .listStyle(.insetGrouped)
-        .environment(\.defaultMinListHeaderHeight, 0)
         .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 104) }
         .navigationDestination(for: TodoList.self) { list in
             ContentView(todoList: list)
