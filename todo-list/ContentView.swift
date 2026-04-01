@@ -7,11 +7,15 @@
 
 import SwiftUI
 import SwiftData
+import AudioToolbox
 
 struct ContentView: View {
     @Environment(\.modelContext) private var context
+    @AppStorage("soundEnabled") private var soundEnabled = true
+    @AppStorage("hapticEnabled") private var hapticEnabled = true
     @State private var showingAddSheet = false
     @State private var showingRenameSheet = false
+    @State private var hapticTrigger = false
     let todoList: TodoList
 
     private var sortedTodos: [Todo] {
@@ -59,6 +63,7 @@ struct ContentView: View {
                 .presentationDetents([.height(280)])
                 .presentationCornerRadius(20)
         }
+        .sensoryFeedback(.success, trigger: hapticTrigger)
     }
 
     // MARK: - Todo List
@@ -103,8 +108,13 @@ struct ContentView: View {
     private func todoRow(_ todo: Todo) -> some View {
         HStack(spacing: 14) {
             Button {
+                let completing = !todo.isCompleted
                 withAnimation(.spring(duration: 0.3)) {
                     todo.isCompleted.toggle()
+                }
+                if completing {
+                    if soundEnabled { AudioServicesPlaySystemSound(1054) }
+                    if hapticEnabled { hapticTrigger.toggle() }
                 }
             } label: {
                 Image(systemName: todo.isCompleted ? "checkmark.circle.fill" : "circle")
