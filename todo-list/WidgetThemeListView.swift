@@ -10,43 +10,36 @@ struct WidgetThemeListView: View {
     @State private var themes: [WidgetTheme] = WidgetThemeStore.loadAll()
     @State private var editingTheme: WidgetTheme?
 
-    @Environment(\.dismiss) private var dismiss
-
     private static let previewData = WidgetPreviewData()
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if themes.isEmpty {
-                    emptyState
-                } else {
-                    themeList
-                }
+        Group {
+            if themes.isEmpty {
+                emptyState
+            } else {
+                themeList
             }
-            .navigationTitle("Widget Themes")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Done") { dismiss() }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        editingTheme = WidgetTheme(
-                            id: UUID(),
-                            name: "",
-                            accentColorComponents: ColorComponents(red: 0, green: 0.478, blue: 1.0, opacity: 1.0),
-                            backgroundColorComponents: nil,
-                            textColorComponents: nil,
-                            fontSize: .medium,
-                            rowHeight: .normal,
-                            checkboxPosition: .leading,
-                            showRemainingCount: true,
-                            showCompletedCount: false,
-                            showCompleted: false
-                        )
-                    } label: {
-                        Image(systemName: "plus")
-                    }
+        }
+        .navigationTitle("Widget Themes")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    editingTheme = WidgetTheme(
+                        id: UUID(),
+                        name: "",
+                        accentColorComponents: ColorComponents(red: 0, green: 0.478, blue: 1.0, opacity: 1.0),
+                        backgroundColorComponents: nil,
+                        textColorComponents: nil,
+                        fontSize: .medium,
+                        rowHeight: .normal,
+                        checkboxPosition: .leading,
+                        showRemainingCount: true,
+                        showCompletedCount: false,
+                        showCompleted: false
+                    )
+                } label: {
+                    Image(systemName: "plus")
                 }
             }
         }
