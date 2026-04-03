@@ -76,11 +76,26 @@ struct ListNamesProvider: DynamicOptionsProvider {
     }
 }
 
-// MARK: - Theme Names Provider
+// MARK: - Widget Theme Entity
 
-struct ThemeNamesProvider: DynamicOptionsProvider {
-    func results() async throws -> [String] {
-        WidgetThemeStore.loadAll().map(\.name)
+extension WidgetTheme: AppEntity {
+    public static var typeDisplayRepresentation: TypeDisplayRepresentation = "Theme"
+
+    public var displayRepresentation: DisplayRepresentation {
+        DisplayRepresentation(title: "\(name)")
+    }
+
+    public static var defaultQuery = WidgetThemeEntityQuery()
+}
+
+struct WidgetThemeEntityQuery: EntityQuery {
+    func entities(for identifiers: [UUID]) async throws -> [WidgetTheme] {
+        let all = WidgetThemeStore.loadAll()
+        return identifiers.compactMap { id in all.first { $0.id == id } }
+    }
+
+    func suggestedEntities() async throws -> [WidgetTheme] {
+        WidgetThemeStore.loadAll()
     }
 }
 
@@ -106,8 +121,8 @@ struct SelectListIntent: WidgetConfigurationIntent {
     @Parameter(title: "List", optionsProvider: ListNamesProvider())
     var listTitle: String?
 
-    @Parameter(title: "Theme", optionsProvider: ThemeNamesProvider())
-    var themeName: String?
+    @Parameter(title: "Theme")
+    var theme: WidgetTheme?
 
     @Parameter(title: "Interaction Mode", default: .interactive)
     var interactionMode: WidgetInteractionMode
@@ -165,7 +180,7 @@ struct TodoWidgetProvider: AppIntentTimelineProvider {
     }
 
     private func fetchEntry(for configuration: SelectListIntent, date: Date = Date(), justCompleted: JustCompletedInfo? = nil) -> TodoWidgetEntry {
-        let theme = WidgetThemeStore.find(name: configuration.themeName)
+        let theme = configuration.theme ?? WidgetThemeStore.loadAll().first ?? .default
         do {
             let config = ModelConfiguration(url: sharedStoreURL)
             let container = try ModelContainer(for: TodoList.self, configurations: config)

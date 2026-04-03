@@ -27,7 +27,7 @@ struct WidgetThemeListView: View {
                 Button {
                     editingTheme = WidgetTheme(
                         id: UUID(),
-                        name: "",
+                        name: defaultThemeName(),
                         accentColorComponents: ColorComponents(red: 0, green: 0.478, blue: 1.0, opacity: 1.0),
                         backgroundColorComponents: nil,
                         textColorComponents: nil,
@@ -43,7 +43,7 @@ struct WidgetThemeListView: View {
                 }
             }
         }
-        .sheet(item: $editingTheme) { theme in
+        .fullScreenCover(item: $editingTheme) { theme in
             WidgetThemeEditView(theme: theme) { updatedTheme in
                 if let index = themes.firstIndex(where: { $0.id == updatedTheme.id }) {
                     themes[index] = updatedTheme
@@ -115,6 +115,16 @@ struct WidgetThemeListView: View {
                 .foregroundStyle(Color(.systemGray3))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Default Name
+
+    private func defaultThemeName() -> String {
+        let existing = Set(themes.map(\.name))
+        if !existing.contains("New Theme") { return "New Theme" }
+        var i = 2
+        while existing.contains("New Theme \(i)") { i += 1 }
+        return "New Theme \(i)"
     }
 
     // MARK: - Save
