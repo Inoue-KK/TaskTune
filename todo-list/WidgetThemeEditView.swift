@@ -242,12 +242,13 @@ struct WidgetThemeEditView: View {
     private var effectiveAvailableWidth: CGFloat {
         guard verticalSizeClass == .compact else { return availableWidth }
         // セーフエリアを差し引いた実際のコンテンツ幅を使う
-        let safeInsets = (UIApplication.shared.connectedScenes
+        let windowScene = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
-            .first { $0.activationState == .foregroundActive }?
-            .windows.first { $0.isKeyWindow }?
-            .safeAreaInsets) ?? .zero
-        let contentWidth = UIScreen.main.bounds.width - safeInsets.left - safeInsets.right
+            .first { $0.activationState == .foregroundActive }
+        let window = windowScene?.windows.first { $0.isKeyWindow }
+        let safeInsets = window?.safeAreaInsets ?? .zero
+        let screenWidth = windowScene?.screen.bounds.width ?? 390
+        let contentWidth = screenWidth - safeInsets.left - safeInsets.right
         return min(contentWidth * 0.42 - 40, availableWidth)
     }
 

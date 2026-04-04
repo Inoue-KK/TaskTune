@@ -160,7 +160,7 @@ enum WidgetCheckboxStyleValue: String, Codable, CaseIterable {
 
 // MARK: - Widget Theme
 
-struct WidgetTheme: Codable, Identifiable {
+struct WidgetTheme: Codable, Identifiable, Sendable {
     var id: UUID
     var name: String
     var accentColorComponents: ColorComponents

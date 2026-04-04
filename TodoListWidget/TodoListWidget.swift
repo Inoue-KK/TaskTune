@@ -138,6 +138,7 @@ struct TodoWidgetEntry: TimelineEntry {
     let theme: WidgetTheme
     var showCheckbox: Bool = true
     var justCompletedTitle: String? = nil
+    var isSetup: Bool = false
 
     var totalPending: Int { pendingTodos.count }
     var totalCompleted: Int { completedTodos.count }
@@ -181,12 +182,29 @@ struct TodoWidgetProvider: AppIntentTimelineProvider {
 
     private func fetchEntry(for configuration: SelectListIntent, date: Date = Date(), justCompleted: JustCompletedInfo? = nil) -> TodoWidgetEntry {
         let theme = configuration.theme ?? WidgetThemeStore.loadAll().first ?? .default
+        guard let listTitle = configuration.listTitle else {
+            var setupTheme = theme
+            setupTheme.showRemainingCount = false
+            setupTheme.showCompletedCount = false
+            return TodoWidgetEntry(
+                date: date,
+                listTitle: "Todo List",
+                pendingTodos: [
+                    "Hold & tap Edit Widget",
+                    "to set list & theme",
+                ],
+                completedTodos: [],
+                theme: setupTheme,
+                showCheckbox: false,
+                isSetup: true
+            )
+        }
         do {
             let config = ModelConfiguration(url: sharedStoreURL)
             let container = try ModelContainer(for: TodoList.self, configurations: config)
             let context = ModelContext(container)
             let lists = try context.fetch(FetchDescriptor<TodoList>(sortBy: [SortDescriptor(\.sortOrder)]))
-            let list = lists.first(where: { $0.title == configuration.listTitle }) ?? lists.first
+            let list = lists.first(where: { $0.title == listTitle }) ?? lists.first
             if let list {
                 let sorted = list.todos.sorted { $0.sortOrder < $1.sortOrder }
 
@@ -335,7 +353,7 @@ struct SmallWidgetView: View {
             Divider().padding(.bottom, 1)
             pendingList
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 8)
         .padding(.vertical, 12)
         .containerBackground(for: .widget) {
             entry.theme.backgroundColor
@@ -344,10 +362,29 @@ struct SmallWidgetView: View {
 
     @ViewBuilder
     private var pendingList: some View {
+        if entry.isSetup {
+            setupMessageView
+        } else {
+            normalPendingList
+        }
+    }
+
+    private var setupMessageView: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ForEach(entry.pendingTodos, id: \.self) { line in
+                Text(line)
+                    .font(.caption)
+                    .foregroundStyle(renderingMode == .accented ? Color.primary : entry.theme.textColor)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var normalPendingList: some View {
         let toShow = Array(entry.pendingTodos.prefix(maxItemCount))
         let remaining = entry.totalPending - toShow.count
-
-        VStack(alignment: .leading, spacing: 0) {
+        return VStack(alignment: .leading, spacing: 0) {
             if entry.pendingTodos.isEmpty {
                 HStack {
                     Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
