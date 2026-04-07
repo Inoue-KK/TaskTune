@@ -8,6 +8,26 @@
 
 import SwiftUI
 
+// MARK: - Preview Layout Constants
+
+private enum WidgetPreviewSize {
+    // Widget canvas dimensions (points)
+    static let smallSide: CGFloat = 155
+    static let mediumWidth: CGFloat = 329
+    static let mediumHeight: CGFloat = 155
+    static let largeWidth: CGFloat = 329
+    static let largeHeight: CGFloat = 345
+    static let cornerRadius: CGFloat = 22
+
+    // Usable item area heights after subtracting padding, header, and divider
+    // Small:  155 - 24 (v-padding) - 18 (header) - 2 (divider) ≈ 111
+    // Medium: 155 - 24 (v-padding) - 14 (header) - 3 (divider) ≈ 114
+    // Large:  345 - 32 (padding) - 36 (header) - 16 (divider) ≈ 261
+    static let smallItemAreaHeight: CGFloat = 111
+    static let mediumItemAreaHeight: CGFloat = 114
+    static let largeItemAreaHeight: CGFloat = 261
+}
+
 // MARK: - Preview Data
 
 struct WidgetPreviewData {
@@ -92,7 +112,7 @@ struct SmallWidgetPreview: View {
     let data: WidgetPreviewData
 
     private var maxItemCount: Int {
-        max(1, Int(111 / theme.estimatedRowHeight))
+        max(1, Int(WidgetPreviewSize.smallItemAreaHeight / theme.estimatedRowHeight))
     }
 
     var body: some View {
@@ -103,9 +123,9 @@ struct SmallWidgetPreview: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 12)
-        .frame(width: 155, height: 155)
+        .frame(width: WidgetPreviewSize.smallSide, height: WidgetPreviewSize.smallSide)
         .background(theme.backgroundColor)
-        .clipShape(RoundedRectangle(cornerRadius: 22))
+        .clipShape(RoundedRectangle(cornerRadius: WidgetPreviewSize.cornerRadius))
     }
 
     @ViewBuilder
@@ -142,7 +162,7 @@ struct MediumWidgetPreview: View {
     let data: WidgetPreviewData
 
     private var maxItemCount: Int {
-        max(1, Int(114 / theme.estimatedRowHeight))
+        max(1, Int(WidgetPreviewSize.mediumItemAreaHeight / theme.estimatedRowHeight))
     }
 
     var body: some View {
@@ -153,9 +173,9 @@ struct MediumWidgetPreview: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .frame(width: 329, height: 155)
+        .frame(width: WidgetPreviewSize.mediumWidth, height: WidgetPreviewSize.mediumHeight)
         .background(theme.backgroundColor)
-        .clipShape(RoundedRectangle(cornerRadius: 22))
+        .clipShape(RoundedRectangle(cornerRadius: WidgetPreviewSize.cornerRadius))
     }
 
     @ViewBuilder
@@ -191,7 +211,7 @@ struct LargeWidgetPreview: View {
     let theme: WidgetTheme
     let data: WidgetPreviewData
 
-    private let innerHeight: CGFloat = 261  // 345 - padding(16*2) - header(36) - divider(8)
+    private var innerHeight: CGFloat { WidgetPreviewSize.largeItemAreaHeight }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -200,9 +220,9 @@ struct LargeWidgetPreview: View {
             todoList
         }
         .padding()
-        .frame(width: 329, height: 345)
+        .frame(width: WidgetPreviewSize.largeWidth, height: WidgetPreviewSize.largeHeight)
         .background(theme.backgroundColor)
-        .clipShape(RoundedRectangle(cornerRadius: 22))
+        .clipShape(RoundedRectangle(cornerRadius: WidgetPreviewSize.cornerRadius))
     }
 
     @ViewBuilder

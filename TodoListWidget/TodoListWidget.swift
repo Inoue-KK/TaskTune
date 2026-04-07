@@ -337,6 +337,16 @@ struct WidgetHeaderView: View {
     }
 }
 
+// MARK: - Widget Layout Constants
+
+private enum WidgetItemAreaHeight {
+    // Usable item area heights after subtracting padding, header, and divider
+    // Small:  ~155 - 24 (v-padding) - 18 (header) - 2 (divider) ≈ 111
+    // Medium: ~158 - 24 (v-padding) - 14 (header) - 3 (divider) ≈ 114 (note: system height differs from preview)
+    static let small: CGFloat = 111
+    static let medium: CGFloat = 114
+}
+
 // MARK: - Small Widget View
 
 struct SmallWidgetView: View {
@@ -344,9 +354,8 @@ struct SmallWidgetView: View {
 
     @Environment(\.widgetRenderingMode) private var renderingMode
 
-    // Small widget content area: ~155pt height, minus 24pt vertical padding, ~18pt header, ~2pt divider ≈ 111pt for items
     private var maxItemCount: Int {
-        max(1, Int(111 / entry.theme.estimatedRowHeight))
+        max(1, Int(WidgetItemAreaHeight.small / entry.theme.estimatedRowHeight))
     }
 
     var body: some View {
@@ -413,9 +422,8 @@ struct SmallWidgetView: View {
 struct MediumWidgetView: View {
     let entry: TodoWidgetEntry
 
-    // Medium widget content area: ~158pt height, minus 24pt vertical padding, ~18pt header, 3pt divider ≈ 114pt for items
     private var maxItemCount: Int {
-        max(1, Int(114 / entry.theme.estimatedRowHeight))
+        max(1, Int(WidgetItemAreaHeight.medium / entry.theme.estimatedRowHeight))
     }
 
     var body: some View {
