@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import CoreHaptics
 
 struct ContentView: View {
     @Environment(\.modelContext) private var context
@@ -15,7 +16,7 @@ struct ContentView: View {
     @AppStorage("selectedSound") private var selectedSoundRaw = CompletionSound.bubble.rawValue
     @State private var showingAddSheet = false
     @State private var showingRenameSheet = false
-    @State private var hapticTrigger = false
+    @State private var hapticEngine: CHHapticEngine?
     let todoList: TodoList
 
     private var sortedTodos: [Todo] {
@@ -63,7 +64,7 @@ struct ContentView: View {
                 .presentationDetents([.height(280)])
                 .presentationCornerRadius(20)
         }
-        .sensoryFeedback(.success, trigger: hapticTrigger)
+        .onAppear { prepareHapticEngine() }
     }
 
     // MARK: - Todo List
@@ -107,7 +108,9 @@ struct ContentView: View {
 
     private func todoRow(_ todo: Todo) -> some View {
         HStack(spacing: 14) {
-            Button {
+            TodoCheckboxButton(todo: todo) {
+                if hapticEnabled { playLightHaptic() }
+            } onRelease: {
                 let completing = !todo.isCompleted
                 withAnimation(.spring(duration: 0.3)) {
                     todo.isCompleted.toggle()
@@ -116,15 +119,9 @@ struct ContentView: View {
                     if soundEnabled {
                         playSound(CompletionSound(rawValue: selectedSoundRaw) ?? .bubble)
                     }
-                    if hapticEnabled { hapticTrigger.toggle() }
+                    if hapticEnabled { playHaptic() }
                 }
-            } label: {
-                Image(systemName: todo.isCompleted ? "checkmark.circle.fill" : "circle")
-                    .font(.title3)
-                    .foregroundStyle(todo.isCompleted ? .green : Color(.systemGray3))
-                    .contentTransition(.symbolEffect(.replace))
             }
-            .buttonStyle(.plain)
 
             Text(todo.title)
                 .font(.body)
@@ -181,6 +178,36 @@ struct ContentView: View {
         .padding(24)
     }
 
+    // MARK: - Haptics
+
+    private func prepareHapticEngine() {
+        guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else { return }
+        hapticEngine = try? CHHapticEngine()
+        try? hapticEngine?.start()
+    }
+
+    private func playLightHaptic() {
+        guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else { return }
+        let intensity = CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0)
+        let sharpness = CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.5)
+        let event = CHHapticEvent(eventType: .hapticTransient, parameters: [intensity, sharpness], relativeTime: 0)
+        guard let pattern = try? CHHapticPattern(events: [event], parameters: []),
+              let player = try? hapticEngine?.makePlayer(with: pattern) else { return }
+        try? hapticEngine?.start()
+        try? player.start(atTime: CHHapticTimeImmediate)
+    }
+
+    private func playHaptic() {
+        guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else { return }
+        let intensity = CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0)
+        let sharpness = CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.5)
+        let event = CHHapticEvent(eventType: .hapticTransient, parameters: [intensity, sharpness], relativeTime: 0)
+        guard let pattern = try? CHHapticPattern(events: [event], parameters: []),
+              let player = try? hapticEngine?.makePlayer(with: pattern) else { return }
+        try? hapticEngine?.start()
+        try? player.start(atTime: CHHapticTimeImmediate)
+    }
+
     // MARK: - Helpers
 
     private func deleteTodos(from section: [Todo], at indexSet: IndexSet) {
@@ -203,5 +230,32 @@ struct ContentView: View {
         for (index, todo) in (pendingTodos + items).enumerated() {
             todo.sortOrder = index
         }
+    }
+}
+
+private struct TodoCheckboxButton: View {
+    let todo: Todo
+    var onPress: () -> Void
+    var onRelease: () -> Void
+
+    @State private var pressing = false
+
+    var body: some View {
+        Image(systemName: todo.isCompleted ? "checkmark.circle.fill" : "circle")
+            .font(.title3)
+            .foregroundStyle(todo.isCompleted ? .green : Color(.systemGray3))
+            .contentTransition(.symbolEffect(.replace))
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        guard !pressing else { return }
+                        pressing = true
+                        onPress()
+                    }
+                    .onEnded { _ in
+                        pressing = false
+                        onRelease()
+                    }
+            )
     }
 }
