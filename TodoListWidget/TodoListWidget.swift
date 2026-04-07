@@ -236,7 +236,9 @@ struct TodoWidgetProvider: AppIntentTimelineProvider {
                     showCheckbox: configuration.interactionMode == .interactive
                 )
             }
-        } catch {}
+        } catch {
+            print("[TodoListWidget] fetchEntry failed: \(error)")
+        }
         return TodoWidgetEntry(
             date: date,
             listTitle: "Todo",

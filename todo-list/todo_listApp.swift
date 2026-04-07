@@ -16,11 +16,16 @@ private let appGroupID = "group.com.inoue-kk.todo-list"
 @main
 struct todo_listApp: App {
     let container: ModelContainer = {
-        let storeURL = FileManager.default
-            .containerURL(forSecurityApplicationGroupIdentifier: appGroupID)!
-            .appendingPathComponent("todo-list.store")
+        guard let groupURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupID) else {
+            fatalError("App Group '\(appGroupID)' is not configured. Check Signing & Capabilities.")
+        }
+        let storeURL = groupURL.appendingPathComponent("todo-list.store")
         let config = ModelConfiguration(url: storeURL)
-        return try! ModelContainer(for: TodoList.self, configurations: config)
+        do {
+            return try ModelContainer(for: TodoList.self, configurations: config)
+        } catch {
+            fatalError("Failed to create ModelContainer: \(error)")
+        }
     }()
 
     @Environment(\.scenePhase) private var scenePhase
