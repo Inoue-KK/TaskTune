@@ -16,6 +16,8 @@ struct ContentView: View {
     @AppStorage("selectedSound") private var selectedSoundRaw = CompletionSound.bubble.rawValue
     @State private var showingAddSheet = false
     @State private var showingRenameSheet = false
+    @State private var addSheetDueDateEnabled = false
+    @State private var editingTodo: Todo?
     @State private var hapticEngine: CHHapticEngine?
     let todoList: TodoList
 
@@ -60,9 +62,16 @@ struct ContentView: View {
                 .presentationCornerRadius(20)
         }
         .sheet(isPresented: $showingAddSheet) {
-            AddTodoView(todoList: todoList)
-                .presentationDetents([.height(280)])
+            AddTodoView(todoList: todoList, dueDateEnabled: $addSheetDueDateEnabled)
+                .presentationDetents([addSheetDueDateEnabled ? .height(440) : .height(340)])
                 .presentationCornerRadius(20)
+        }
+        .sheet(item: $editingTodo) { todo in
+            EditTodoView(todo: todo)
+                .presentationCornerRadius(20)
+        }
+        .onChange(of: showingAddSheet) { _, isShowing in
+            if !isShowing { addSheetDueDateEnabled = false }
         }
         .onAppear { prepareHapticEngine() }
     }
@@ -116,20 +125,86 @@ struct ContentView: View {
                     todo.isCompleted.toggle()
                 }
                 if completing {
+                    if todo.repeatInterval == nil {
+                        NotificationManager.shared.cancel(for: todo)
+                    } else {
+                        todo.missedCount = 0
+                    }
                     if soundEnabled {
                         playSound(CompletionSound(rawValue: selectedSoundRaw) ?? .bubble)
                     }
                     if hapticEnabled { playHaptic() }
+                } else {
+                    Task { await NotificationManager.shared.schedule(for: todo) }
                 }
             }
 
-            Text(todo.title)
-                .font(.body)
-                .foregroundStyle(todo.isCompleted ? Color(.systemGray2) : .primary)
-                .strikethrough(todo.isCompleted, color: Color(.systemGray2))
-                .animation(.easeInOut(duration: 0.2), value: todo.isCompleted)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(todo.title)
+                    .font(.body)
+                    .foregroundStyle(todo.isCompleted ? Color(.systemGray2) : .primary)
+                    .strikethrough(todo.isCompleted, color: Color(.systemGray2))
+                    .animation(.easeInOut(duration: 0.2), value: todo.isCompleted)
+
+                if let dueDate = todo.dueDate, !todo.isCompleted {
+                    Text(dueDateLabel(dueDate))
+                        .font(.caption)
+                        .foregroundStyle(dueDateColor(dueDate))
+                }
+
+                if todo.repeatInterval != nil, !todo.isCompleted {
+                    HStack(spacing: 4) {
+                        Image(systemName: "repeat")
+                        if todo.missedCount > 0 {
+                            Text("Missed ×\(todo.missedCount)")
+                        }
+                    }
+                    .font(.caption)
+                    .foregroundStyle(todo.missedCount > 0 ? Color.red : Color.secondary)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .onTapGesture { editingTodo = todo }
         }
         .padding(.vertical, 2)
+    }
+
+    private static let overdueDateFormatter: DateFormatter = {
+        let df = DateFormatter()
+        df.dateStyle = .medium
+        df.timeStyle = .none
+        return df
+    }()
+
+    private static let todayTimeFormatter: DateFormatter = {
+        let tf = DateFormatter()
+        tf.dateStyle = .none
+        tf.timeStyle = .short
+        return tf
+    }()
+
+    private static let futureDateFormatter: DateFormatter = {
+        let df = DateFormatter()
+        df.dateStyle = .medium
+        df.timeStyle = .short
+        return df
+    }()
+
+    private func dueDateLabel(_ date: Date) -> String {
+        if date < Date() {
+            return "Overdue · \(Self.overdueDateFormatter.string(from: date))"
+        } else if Calendar.current.isDateInToday(date) {
+            return "Today at \(Self.todayTimeFormatter.string(from: date))"
+        } else {
+            return Self.futureDateFormatter.string(from: date)
+        }
+    }
+
+    private func dueDateColor(_ date: Date) -> Color {
+        if date < Date() { return .red }
+        if Calendar.current.isDateInToday(date) { return .orange }
+        return .secondary
     }
 
     private func sectionHeader(_ title: String, count: Int) -> some View {
@@ -201,7 +276,9 @@ struct ContentView: View {
 
     private func deleteTodos(from section: [Todo], at indexSet: IndexSet) {
         for index in indexSet {
-            context.delete(section[index])
+            let todo = section[index]
+            NotificationManager.shared.cancel(for: todo)
+            context.delete(todo)
         }
     }
 

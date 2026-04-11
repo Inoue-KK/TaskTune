@@ -1,45 +1,55 @@
 //
-//  AddTodoView.swift
+//  EditTodoView.swift
 //  todo-list
 //
-//  Created by 井上京佳 on 2026/03/26.
+//  Created by 井上京佳 on 2026/04/08.
 //
 
 import SwiftUI
-import SwiftData
 import UIKit
 
-struct AddTodoView: View {
-    @Environment(\.modelContext) private var context
+struct EditTodoView: View {
     @Environment(\.dismiss) private var dismiss
-    let todoList: TodoList
-    @Binding var dueDateEnabled: Bool
-    @State private var title = ""
-    @State private var dueDate = Calendar.current.date(byAdding: .hour, value: 1, to: Date()) ?? Date()
-    @State private var repeatInterval: RepeatInterval? = nil
+    let todo: Todo
+    @State private var title: String
+    @State private var dueDateEnabled: Bool
+    @State private var dueDate: Date
+    @State private var repeatInterval: RepeatInterval?
     @State private var showNotificationDeniedAlert = false
+    @State private var selectedDetent: PresentationDetent = .height(340)
     @FocusState private var isFocused: Bool
+
+    init(todo: Todo) {
+        self.todo = todo
+        _title = State(initialValue: todo.title)
+        _dueDateEnabled = State(initialValue: todo.dueDate != nil)
+        _dueDate = State(initialValue: todo.dueDate ?? Calendar.current.date(byAdding: .hour, value: 1, to: Date()) ?? Date())
+        _repeatInterval = State(initialValue: todo.repeatInterval)
+        _selectedDetent = State(initialValue: todo.dueDate != nil ? .height(440) : .height(340))
+    }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                TextField("e.g. Buy milk", text: $title)
+                TextField("Title", text: $title)
                     .font(.body)
                     .padding()
                     .background(Color(.systemGray6))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .focused($isFocused)
 
-                Toggle("Add Due Date", isOn: $dueDateEnabled.animation())
+                Toggle("Due Date", isOn: $dueDateEnabled.animation())
                     .font(.body)
                     .padding(.horizontal, 4)
                     .onChange(of: dueDateEnabled) { _, enabled in
                         if !enabled { repeatInterval = nil }
+                        selectedDetent = enabled ? .height(440) : .height(340)
                         guard enabled else { return }
                         Task {
                             let status = await NotificationManager.shared.authorizationStatus()
                             if status == .denied {
                                 dueDateEnabled = false
+                                selectedDetent = .height(340)
                                 showNotificationDeniedAlert = true
                             }
                         }
@@ -49,7 +59,7 @@ struct AddTodoView: View {
                     DatePicker(
                         "",
                         selection: $dueDate,
-                        in: Date()...,
+                        in: min(dueDate, Date())...,
                         displayedComponents: [.date, .hourAndMinute]
                     )
                     .datePickerStyle(.compact)
@@ -74,20 +84,19 @@ struct AddTodoView: View {
 
                 Button {
                     guard !trimmed.isEmpty else { return }
-                    let todo = Todo(
-                        title: trimmed,
-                        sortOrder: todoList.todos.count,
-                        dueDate: dueDateEnabled ? dueDate : nil,
-                        repeatInterval: dueDateEnabled ? repeatInterval : nil
-                    )
-                    context.insert(todo)
-                    todo.todoList = todoList
-                    if dueDateEnabled {
-                        Task { await NotificationManager.shared.schedule(for: todo) }
+                    todo.title = trimmed
+                    todo.dueDate = dueDateEnabled ? dueDate : nil
+                    todo.repeatInterval = dueDateEnabled ? repeatInterval : nil
+                    Task {
+                        if dueDateEnabled && !todo.isCompleted {
+                            await NotificationManager.shared.schedule(for: todo)
+                        } else {
+                            NotificationManager.shared.cancel(for: todo)
+                        }
                     }
                     dismiss()
                 } label: {
-                    Text("Add")
+                    Text("Save")
                         .font(.body)
                         .fontWeight(.semibold)
                         .foregroundStyle(.white)
@@ -104,9 +113,10 @@ struct AddTodoView: View {
                 Spacer()
             }
             .padding()
-            .navigationTitle("New Todo")
+            .navigationTitle("Edit Todo")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear { isFocused = true }
+            .presentationDetents([.height(340), .height(440)], selection: $selectedDetent)
             .alert("Notifications Disabled", isPresented: $showNotificationDeniedAlert) {
                 Button("Open Settings") {
                     if let url = URL(string: UIApplication.openSettingsURLString) {
