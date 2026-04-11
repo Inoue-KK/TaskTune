@@ -58,6 +58,13 @@ struct ListsView: View {
             path.removeLast(path.count)
             path.append(list)
         }
+        .onReceive(NotificationCenter.default.publisher(for: .openListByTitle)) { note in
+            guard let title = note.userInfo?["listTitle"] as? String,
+                  let list = lists.first(where: { $0.title == title })
+            else { return }
+            path.removeLast(path.count)
+            path.append(list)
+        }
         .sheet(item: $renamingList) { list in
             RenameListView(todoList: list)
                 .presentationDetents([.height(280)])
