@@ -110,7 +110,7 @@ extension NotificationManager: UNUserNotificationCenterDelegate {
             // アクションボタンから直接完了
             guard let notificationID = userInfo["notificationID"] as? String,
                   let container = modelContainer else { return }
-            let context = ModelContext(container)
+            let context = container.mainContext
             let descriptor = FetchDescriptor<Todo>(
                 predicate: #Predicate { $0.notificationID == notificationID }
             )

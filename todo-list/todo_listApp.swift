@@ -96,11 +96,14 @@ struct todo_listApp: App {
 
     @Environment(\.scenePhase) private var scenePhase
 
+    init() {
+        NotificationManager.shared.modelContainer = container
+    }
+
     var body: some Scene {
         WindowGroup {
             ListsView()
                 .task {
-                    NotificationManager.shared.modelContainer = container
                     await NotificationManager.shared.requestPermission()
                 }
         }
