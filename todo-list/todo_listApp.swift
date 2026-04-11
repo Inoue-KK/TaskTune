@@ -13,6 +13,49 @@ import WidgetKit
 // e.g. "group.com.yourname.todo-list"
 private let appGroupID = "group.com.inoue-kk.todo-list"
 
+// Bump this when the SwiftData schema changes to force store recreation on old devices
+private let schemaVersion = 3
+private let schemaVersionKey = "swiftDataSchemaVersion"
+
+@MainActor
+private func advanceOverdueRepeatingTodos(in container: ModelContainer) async {
+    let context = container.mainContext
+    let now = Date()
+    let descriptor = FetchDescriptor<Todo>()
+    guard let allTodos = try? context.fetch(descriptor) else { return }
+    let todos = allTodos.filter { $0.repeatInterval != nil && $0.dueDate != nil }
+
+    var didAdvance = false
+    for todo in todos {
+        guard let interval = todo.repeatInterval,
+              let dueDate = todo.dueDate,
+              dueDate < now else { continue }
+
+        var newDate = dueDate
+        var cycles = 0
+        while newDate <= now {
+            guard let next = Calendar.current.date(byAdding: interval.calendarComponent, value: 1, to: newDate) else { break }
+            newDate = next
+            cycles += 1
+        }
+        guard cycles > 0 else { continue }
+
+        if todo.isCompleted {
+            todo.isCompleted = false
+            todo.missedCount = 0
+        } else {
+            todo.missedCount += cycles
+        }
+        todo.dueDate = newDate
+        await NotificationManager.shared.schedule(for: todo)
+        didAdvance = true
+    }
+
+    if didAdvance {
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+}
+
 @main
 struct todo_listApp: App {
     let container: ModelContainer = {
@@ -20,11 +63,34 @@ struct todo_listApp: App {
             fatalError("App Group '\(appGroupID)' is not configured. Check Signing & Capabilities.")
         }
         let storeURL = groupURL.appendingPathComponent("todo-list.store")
+
+        func deleteStore() {
+            for suffix in ["", "-shm", "-wal"] {
+                let url = groupURL.appendingPathComponent("todo-list.store\(suffix)")
+                try? FileManager.default.removeItem(at: url)
+            }
+        }
+
+        // スキーマバージョンが古い場合はストアを削除して再作成
+        let defaults = UserDefaults(suiteName: appGroupID)
+        let savedVersion = defaults?.integer(forKey: schemaVersionKey) ?? 0
+        if savedVersion < schemaVersion {
+            print("Schema version changed (\(savedVersion) → \(schemaVersion)), recreating store.")
+            deleteStore()
+            defaults?.set(schemaVersion, forKey: schemaVersionKey)
+        }
+
         let config = ModelConfiguration(url: storeURL)
         do {
             return try ModelContainer(for: TodoList.self, configurations: config)
         } catch {
-            fatalError("Failed to create ModelContainer: \(error)")
+            print("ModelContainer migration failed, recreating store: \(error)")
+            deleteStore()
+            do {
+                return try ModelContainer(for: TodoList.self, configurations: config)
+            } catch {
+                fatalError("Failed to create ModelContainer even after reset: \(error)")
+            }
         }
     }()
 
@@ -33,11 +99,20 @@ struct todo_listApp: App {
     var body: some Scene {
         WindowGroup {
             ListsView()
+                .task {
+                    NotificationManager.shared.modelContainer = container
+                    await NotificationManager.shared.requestPermission()
+                }
         }
         .modelContainer(container)
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .background {
                 WidgetCenter.shared.reloadAllTimelines()
+            }
+            if newPhase == .active {
+                Task {
+                    await advanceOverdueRepeatingTodos(in: container)
+                }
             }
         }
     }

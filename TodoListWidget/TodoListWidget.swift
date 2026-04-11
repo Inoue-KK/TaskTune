@@ -13,6 +13,36 @@ import AppIntents
 // MARK: - App Group
 
 private let appGroupID = "group.com.inoue-kk.todo-list"
+private let schemaVersion = 3
+private let schemaVersionKey = "swiftDataSchemaVersion"
+
+private func makeModelContainer() throws -> ModelContainer? {
+    guard let groupURL = FileManager.default
+        .containerURL(forSecurityApplicationGroupIdentifier: appGroupID) else { return nil }
+    let storeURL = groupURL.appendingPathComponent("todo-list.store")
+
+    func deleteStore() {
+        for suffix in ["", "-shm", "-wal"] {
+            let url = groupURL.appendingPathComponent("todo-list.store\(suffix)")
+            try? FileManager.default.removeItem(at: url)
+        }
+    }
+
+    let defaults = UserDefaults(suiteName: appGroupID)
+    let savedVersion = defaults?.integer(forKey: schemaVersionKey) ?? 0
+    if savedVersion < schemaVersion {
+        deleteStore()
+        defaults?.set(schemaVersion, forKey: schemaVersionKey)
+    }
+
+    let config = ModelConfiguration(url: storeURL)
+    do {
+        return try ModelContainer(for: TodoList.self, configurations: config)
+    } catch {
+        deleteStore()
+        return try ModelContainer(for: TodoList.self, configurations: config)
+    }
+}
 
 private struct JustCompletedInfo: Codable {
     let listTitle: String
@@ -20,12 +50,6 @@ private struct JustCompletedInfo: Codable {
     let timestamp: Date
 }
 private let justCompletedKey = "justCompleted"
-
-private var sharedStoreURL: URL {
-    FileManager.default
-        .containerURL(forSecurityApplicationGroupIdentifier: appGroupID)!
-        .appendingPathComponent("todo-list.store")
-}
 
 // MARK: - Complete Todo Intent
 
@@ -46,13 +70,13 @@ struct CompleteTodoIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult {
-        let config = ModelConfiguration(url: sharedStoreURL)
-        let container = try ModelContainer(for: TodoList.self, configurations: config)
+        guard let container = try makeModelContainer() else { return .result() }
         let context = ModelContext(container)
         let lists = try context.fetch(FetchDescriptor<TodoList>())
         if let list = lists.first(where: { $0.title == listTitle }),
            let todo = list.todos.first(where: { $0.title == todoTitle && !$0.isCompleted }) {
             todo.isCompleted = true
+            todo.missedCount = 0
             try context.save()
             // Save just-completed info for brief visual feedback
             let info = JustCompletedInfo(listTitle: listTitle, todoTitle: todoTitle, timestamp: Date())
@@ -68,8 +92,7 @@ struct CompleteTodoIntent: AppIntent {
 
 struct ListNamesProvider: DynamicOptionsProvider {
     func results() async throws -> [String] {
-        let config = ModelConfiguration(url: sharedStoreURL)
-        let container = try ModelContainer(for: TodoList.self, configurations: config)
+        guard let container = try makeModelContainer() else { return [] }
         let context = ModelContext(container)
         let lists = try context.fetch(FetchDescriptor<TodoList>(sortBy: [SortDescriptor(\.sortOrder)]))
         return lists.map(\.title)
@@ -200,8 +223,7 @@ struct TodoWidgetProvider: AppIntentTimelineProvider {
             )
         }
         do {
-            let config = ModelConfiguration(url: sharedStoreURL)
-            let container = try ModelContainer(for: TodoList.self, configurations: config)
+            guard let container = try makeModelContainer() else { throw NSError(domain: "Widget", code: 0) }
             let context = ModelContext(container)
             let lists = try context.fetch(FetchDescriptor<TodoList>(sortBy: [SortDescriptor(\.sortOrder)]))
             let list = lists.first(where: { $0.title == listTitle }) ?? lists.first
