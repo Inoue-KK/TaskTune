@@ -17,6 +17,7 @@ struct AddTodoView: View {
     @State private var title = ""
     @State private var dueDate = Calendar.current.date(byAdding: .hour, value: 1, to: Date()) ?? Date()
     @State private var repeatInterval: RepeatInterval? = nil
+    @State private var repeatCount: Int = 1
     @State private var showNotificationDeniedAlert = false
     @FocusState private var isFocused: Bool
 
@@ -68,6 +69,16 @@ struct AddTodoView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 4)
                     .transition(.opacity.combined(with: .move(edge: .top)))
+
+                    if let interval = repeatInterval {
+                        Stepper(
+                            "Every \(repeatCount) \(interval.unitLabel(count: repeatCount))",
+                            value: $repeatCount,
+                            in: 1...99
+                        )
+                        .padding(.horizontal, 4)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
                 }
 
                 let trimmed = title.trimmingCharacters(in: .whitespaces)
@@ -78,7 +89,8 @@ struct AddTodoView: View {
                         title: trimmed,
                         sortOrder: todoList.todos.count,
                         dueDate: dueDateEnabled ? dueDate : nil,
-                        repeatInterval: dueDateEnabled ? repeatInterval : nil
+                        repeatInterval: dueDateEnabled ? repeatInterval : nil,
+                        repeatIntervalCount: (dueDateEnabled && repeatInterval != nil) ? repeatCount : 1
                     )
                     context.insert(todo)
                     todo.todoList = todoList

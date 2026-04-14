@@ -34,7 +34,7 @@ private func advanceOverdueRepeatingTodos(in container: ModelContainer) async {
         var newDate = dueDate
         var cycles = 0
         while newDate <= now {
-            guard let next = Calendar.current.date(byAdding: interval.calendarComponent, value: 1, to: newDate) else { break }
+            guard let next = Calendar.current.date(byAdding: interval.calendarComponent, value: todo.repeatIntervalCount, to: newDate) else { break }
             newDate = next
             cycles += 1
         }

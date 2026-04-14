@@ -15,6 +15,7 @@ struct EditTodoView: View {
     @State private var dueDateEnabled: Bool
     @State private var dueDate: Date
     @State private var repeatInterval: RepeatInterval?
+    @State private var repeatCount: Int
     @State private var showNotificationDeniedAlert = false
     @State private var selectedDetent: PresentationDetent = .height(340)
     @FocusState private var isFocused: Bool
@@ -25,7 +26,8 @@ struct EditTodoView: View {
         _dueDateEnabled = State(initialValue: todo.dueDate != nil)
         _dueDate = State(initialValue: todo.dueDate ?? Calendar.current.date(byAdding: .hour, value: 1, to: Date()) ?? Date())
         _repeatInterval = State(initialValue: todo.repeatInterval)
-        _selectedDetent = State(initialValue: todo.dueDate != nil ? .height(440) : .height(340))
+        _repeatCount = State(initialValue: todo.repeatIntervalCount)
+        _selectedDetent = State(initialValue: todo.dueDate != nil ? .height(500) : .height(340))
     }
 
     var body: some View {
@@ -43,7 +45,7 @@ struct EditTodoView: View {
                     .padding(.horizontal, 4)
                     .onChange(of: dueDateEnabled) { _, enabled in
                         if !enabled { repeatInterval = nil }
-                        selectedDetent = enabled ? .height(440) : .height(340)
+                        selectedDetent = enabled ? .height(500) : .height(340)
                         guard enabled else { return }
                         Task {
                             let status = await NotificationManager.shared.authorizationStatus()
@@ -78,6 +80,16 @@ struct EditTodoView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 4)
                     .transition(.opacity.combined(with: .move(edge: .top)))
+
+                    if let interval = repeatInterval {
+                        Stepper(
+                            "Every \(repeatCount) \(interval.unitLabel(count: repeatCount))",
+                            value: $repeatCount,
+                            in: 1...99
+                        )
+                        .padding(.horizontal, 4)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
                 }
 
                 let trimmed = title.trimmingCharacters(in: .whitespaces)
@@ -87,6 +99,7 @@ struct EditTodoView: View {
                     todo.title = trimmed
                     todo.dueDate = dueDateEnabled ? dueDate : nil
                     todo.repeatInterval = dueDateEnabled ? repeatInterval : nil
+                    todo.repeatIntervalCount = (dueDateEnabled && repeatInterval != nil) ? repeatCount : 1
                     Task {
                         if dueDateEnabled && !todo.isCompleted {
                             await NotificationManager.shared.schedule(for: todo)
@@ -116,7 +129,7 @@ struct EditTodoView: View {
             .navigationTitle("Edit Todo")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear { isFocused = true }
-            .presentationDetents([.height(340), .height(440)], selection: $selectedDetent)
+            .presentationDetents([.height(340), .height(500)], selection: $selectedDetent)
             .alert("Notifications Disabled", isPresented: $showNotificationDeniedAlert) {
                 Button("Open Settings") {
                     if let url = URL(string: UIApplication.openSettingsURLString) {

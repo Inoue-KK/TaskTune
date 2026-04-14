@@ -63,7 +63,7 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showingAddSheet) {
             AddTodoView(todoList: todoList, dueDateEnabled: $addSheetDueDateEnabled)
-                .presentationDetents([addSheetDueDateEnabled ? .height(440) : .height(340)])
+                .presentationDetents([addSheetDueDateEnabled ? .height(500) : .height(340)])
                 .presentationCornerRadius(20)
         }
         .sheet(item: $editingTodo) { todo in
@@ -155,8 +155,9 @@ struct ContentView: View {
                 if todo.repeatInterval != nil, !todo.isCompleted {
                     HStack(spacing: 4) {
                         Image(systemName: "repeat")
+                        Text(todo.repeatDescription)
                         if todo.missedCount > 0 {
-                            Text("Missed ×\(todo.missedCount)")
+                            Text("· Missed ×\(todo.missedCount)")
                         }
                     }
                     .font(.caption)
