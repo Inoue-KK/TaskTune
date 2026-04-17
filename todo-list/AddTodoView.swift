@@ -18,6 +18,7 @@ struct AddTodoView: View {
     @State private var dueDate = Calendar.current.date(byAdding: .hour, value: 1, to: Date()) ?? Date()
     @State private var repeatInterval: RepeatInterval? = nil
     @State private var repeatCount: Int = 1
+    @State private var repeatWeekdays: [Int] = []
     @State private var showNotificationDeniedAlert = false
     @FocusState private var isFocused: Bool
 
@@ -27,15 +28,16 @@ struct AddTodoView: View {
                 TextField("e.g. Buy milk", text: $title)
                     .font(.body)
                     .padding()
-                    .background(Color(.systemGray6))
+                    .background(.ultraThinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.primary.opacity(0.06), lineWidth: 1))
                     .focused($isFocused)
 
                 Toggle("Add Due Date", isOn: $dueDateEnabled.animation())
                     .font(.body)
                     .padding(.horizontal, 4)
                     .onChange(of: dueDateEnabled) { _, enabled in
-                        if !enabled { repeatInterval = nil }
+                        if !enabled { repeatInterval = nil; repeatWeekdays = [] }
                         guard enabled else { return }
                         Task {
                             let status = await NotificationManager.shared.authorizationStatus()
@@ -69,8 +71,19 @@ struct AddTodoView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 4)
                     .transition(.opacity.combined(with: .move(edge: .top)))
+                    .onChange(of: repeatInterval) { _, newVal in
+                        if newVal == .weekly {
+                            if repeatWeekdays.isEmpty {
+                                repeatWeekdays = [Calendar.current.component(.weekday, from: dueDate)]
+                            }
+                        } else {
+                            repeatWeekdays = []
+                        }
+                    }
 
-                    if let interval = repeatInterval {
+                    if repeatInterval == .weekly {
+                        weekdaySelector
+                    } else if let interval = repeatInterval {
                         Stepper(
                             "Every \(repeatCount) \(interval.unitLabel(count: repeatCount))",
                             value: $repeatCount,
@@ -85,12 +98,20 @@ struct AddTodoView: View {
 
                 Button {
                     guard !trimmed.isEmpty else { return }
+                    let effectiveDueDate: Date? = {
+                        guard dueDateEnabled else { return nil }
+                        if repeatInterval == .weekly && !repeatWeekdays.isEmpty {
+                            return nextWeekdayOccurrence(after: Date(), weekdays: repeatWeekdays, time: dueDate)
+                        }
+                        return dueDate
+                    }()
                     let todo = Todo(
                         title: trimmed,
                         sortOrder: todoList.todos.count,
-                        dueDate: dueDateEnabled ? dueDate : nil,
+                        dueDate: effectiveDueDate,
                         repeatInterval: dueDateEnabled ? repeatInterval : nil,
-                        repeatIntervalCount: (dueDateEnabled && repeatInterval != nil) ? repeatCount : 1
+                        repeatIntervalCount: (dueDateEnabled && repeatInterval != nil && repeatInterval != .weekly) ? repeatCount : 1,
+                        repeatWeekdays: (dueDateEnabled && repeatInterval == .weekly) ? repeatWeekdays : []
                     )
                     context.insert(todo)
                     todo.todoList = todoList
@@ -102,10 +123,10 @@ struct AddTodoView: View {
                     Text("Add")
                         .font(.body)
                         .fontWeight(.semibold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(trimmed.isEmpty ? Color.secondary : .white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(trimmed.isEmpty ? Color(.systemGray3) : .blue)
+                        .background(trimmed.isEmpty ? AnyShapeStyle(Color.primary.opacity(0.06)) : AnyShapeStyle(Color.blue))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .disabled(trimmed.isEmpty)
@@ -130,5 +151,9 @@ struct AddTodoView: View {
                 Text("Enable notifications in Settings to receive due date reminders.")
             }
         }
+    }
+
+    private var weekdaySelector: some View {
+        WeekdaySelectorView(selectedWeekdays: $repeatWeekdays)
     }
 }

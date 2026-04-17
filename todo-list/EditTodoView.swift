@@ -16,6 +16,7 @@ struct EditTodoView: View {
     @State private var dueDate: Date
     @State private var repeatInterval: RepeatInterval?
     @State private var repeatCount: Int
+    @State private var repeatWeekdays: [Int]
     @State private var showNotificationDeniedAlert = false
     @State private var selectedDetent: PresentationDetent = .height(340)
     @FocusState private var isFocused: Bool
@@ -27,7 +28,8 @@ struct EditTodoView: View {
         _dueDate = State(initialValue: todo.dueDate ?? Calendar.current.date(byAdding: .hour, value: 1, to: Date()) ?? Date())
         _repeatInterval = State(initialValue: todo.repeatInterval)
         _repeatCount = State(initialValue: todo.repeatIntervalCount)
-        _selectedDetent = State(initialValue: todo.dueDate != nil ? .height(500) : .height(340))
+        _repeatWeekdays = State(initialValue: todo.repeatWeekdays)
+        _selectedDetent = State(initialValue: todo.dueDate != nil ? .height(540) : .height(340))
     }
 
     var body: some View {
@@ -36,16 +38,17 @@ struct EditTodoView: View {
                 TextField("Title", text: $title)
                     .font(.body)
                     .padding()
-                    .background(Color(.systemGray6))
+                    .background(.ultraThinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.primary.opacity(0.06), lineWidth: 1))
                     .focused($isFocused)
 
                 Toggle("Due Date", isOn: $dueDateEnabled.animation())
                     .font(.body)
                     .padding(.horizontal, 4)
                     .onChange(of: dueDateEnabled) { _, enabled in
-                        if !enabled { repeatInterval = nil }
-                        selectedDetent = enabled ? .height(500) : .height(340)
+                        if !enabled { repeatInterval = nil; repeatWeekdays = [] }
+                        selectedDetent = enabled ? .height(540) : .height(340)
                         guard enabled else { return }
                         Task {
                             let status = await NotificationManager.shared.authorizationStatus()
@@ -80,8 +83,19 @@ struct EditTodoView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 4)
                     .transition(.opacity.combined(with: .move(edge: .top)))
+                    .onChange(of: repeatInterval) { _, newVal in
+                        if newVal == .weekly {
+                            if repeatWeekdays.isEmpty {
+                                repeatWeekdays = [Calendar.current.component(.weekday, from: dueDate)]
+                            }
+                        } else {
+                            repeatWeekdays = []
+                        }
+                    }
 
-                    if let interval = repeatInterval {
+                    if repeatInterval == .weekly {
+                        weekdaySelector
+                    } else if let interval = repeatInterval {
                         Stepper(
                             "Every \(repeatCount) \(interval.unitLabel(count: repeatCount))",
                             value: $repeatCount,
@@ -97,9 +111,14 @@ struct EditTodoView: View {
                 Button {
                     guard !trimmed.isEmpty else { return }
                     todo.title = trimmed
-                    todo.dueDate = dueDateEnabled ? dueDate : nil
                     todo.repeatInterval = dueDateEnabled ? repeatInterval : nil
-                    todo.repeatIntervalCount = (dueDateEnabled && repeatInterval != nil) ? repeatCount : 1
+                    todo.repeatWeekdays = (dueDateEnabled && repeatInterval == .weekly) ? repeatWeekdays : []
+                    todo.repeatIntervalCount = (dueDateEnabled && repeatInterval != nil && repeatInterval != .weekly) ? repeatCount : 1
+                    if dueDateEnabled && repeatInterval == .weekly && !repeatWeekdays.isEmpty {
+                        todo.dueDate = nextWeekdayOccurrence(after: Date(), weekdays: repeatWeekdays, time: dueDate)
+                    } else {
+                        todo.dueDate = dueDateEnabled ? dueDate : nil
+                    }
                     Task {
                         if dueDateEnabled && !todo.isCompleted {
                             await NotificationManager.shared.schedule(for: todo)
@@ -112,10 +131,10 @@ struct EditTodoView: View {
                     Text("Save")
                         .font(.body)
                         .fontWeight(.semibold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(trimmed.isEmpty ? Color.secondary : .white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(trimmed.isEmpty ? Color(.systemGray3) : .blue)
+                        .background(trimmed.isEmpty ? AnyShapeStyle(Color.primary.opacity(0.06)) : AnyShapeStyle(Color.blue))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .disabled(trimmed.isEmpty)
@@ -129,7 +148,7 @@ struct EditTodoView: View {
             .navigationTitle("Edit Todo")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear { isFocused = true }
-            .presentationDetents([.height(340), .height(500)], selection: $selectedDetent)
+            .presentationDetents([.height(340), .height(540)], selection: $selectedDetent)
             .alert("Notifications Disabled", isPresented: $showNotificationDeniedAlert) {
                 Button("Open Settings") {
                     if let url = URL(string: UIApplication.openSettingsURLString) {
@@ -141,5 +160,9 @@ struct EditTodoView: View {
                 Text("Enable notifications in Settings to receive due date reminders.")
             }
         }
+    }
+
+    private var weekdaySelector: some View {
+        WeekdaySelectorView(selectedWeekdays: $repeatWeekdays)
     }
 }

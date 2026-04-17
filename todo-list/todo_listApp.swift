@@ -31,24 +31,38 @@ private func advanceOverdueRepeatingTodos(in container: ModelContainer) async {
               let dueDate = todo.dueDate,
               dueDate < now else { continue }
 
-        var newDate = dueDate
-        var cycles = 0
-        while newDate <= now {
-            guard let next = Calendar.current.date(byAdding: interval.calendarComponent, value: todo.repeatIntervalCount, to: newDate) else { break }
-            newDate = next
-            cycles += 1
-        }
-        guard cycles > 0 else { continue }
-
-        if todo.isCompleted {
-            todo.isCompleted = false
-            todo.missedCount = 0
+        if interval == .weekly && !todo.repeatWeekdays.isEmpty {
+            // 曜日指定繰り返し: 次の該当曜日へ進める
+            if todo.isCompleted {
+                todo.isCompleted = false
+                todo.missedCount = 0
+            } else {
+                todo.missedCount += 1
+            }
+            todo.dueDate = nextWeekdayOccurrence(after: now, weekdays: todo.repeatWeekdays, time: dueDate)
+            await NotificationManager.shared.schedule(for: todo)
+            didAdvance = true
         } else {
-            todo.missedCount += cycles
+            // インターバル繰り返し: N日/週/月/年ごとに進める
+            var newDate = dueDate
+            var cycles = 0
+            while newDate <= now {
+                guard let next = Calendar.current.date(byAdding: interval.calendarComponent, value: todo.repeatIntervalCount, to: newDate) else { break }
+                newDate = next
+                cycles += 1
+            }
+            guard cycles > 0 else { continue }
+
+            if todo.isCompleted {
+                todo.isCompleted = false
+                todo.missedCount = 0
+            } else {
+                todo.missedCount += cycles
+            }
+            todo.dueDate = newDate
+            await NotificationManager.shared.schedule(for: todo)
+            didAdvance = true
         }
-        todo.dueDate = newDate
-        await NotificationManager.shared.schedule(for: todo)
-        didAdvance = true
     }
 
     if didAdvance {

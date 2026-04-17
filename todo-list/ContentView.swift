@@ -63,7 +63,7 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showingAddSheet) {
             AddTodoView(todoList: todoList, dueDateEnabled: $addSheetDueDateEnabled)
-                .presentationDetents([addSheetDueDateEnabled ? .height(500) : .height(340)])
+                .presentationDetents([addSheetDueDateEnabled ? .height(540) : .height(340)])
                 .presentationCornerRadius(20)
         }
         .sheet(item: $editingTodo) { todo in

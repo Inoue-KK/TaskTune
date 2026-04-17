@@ -46,7 +46,7 @@ class NotificationManager: NSObject {
 
     func schedule(for todo: Todo) async {
         let center = UNUserNotificationCenter.current()
-        center.removePendingNotificationRequests(withIdentifiers: [todo.notificationID])
+        center.removePendingNotificationRequests(withIdentifiers: notificationIDs(for: todo))
 
         guard let dueDate = todo.dueDate, !todo.isCompleted, dueDate > Date() else { return }
 
@@ -60,17 +60,38 @@ class NotificationManager: NSObject {
             "listTitle": todo.todoList?.title ?? ""
         ]
 
-        let comps = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: dueDate)
-        let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)
-        let request = UNNotificationRequest(identifier: todo.notificationID, content: content, trigger: trigger)
-
-        try? await center.add(request)
+        if !todo.repeatWeekdays.isEmpty {
+            let now = Date()
+            let timeComps = Calendar.current.dateComponents([.hour, .minute], from: dueDate)
+            for weekday in todo.repeatWeekdays {
+                var comps = timeComps
+                comps.weekday = weekday
+                guard let nextDate = Calendar.current.nextDate(after: now, matching: comps, matchingPolicy: .nextTime) else { continue }
+                let trigger = UNCalendarNotificationTrigger(
+                    dateMatching: Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: nextDate),
+                    repeats: false
+                )
+                let id = "\(todo.notificationID)_\(weekday)"
+                try? await center.add(UNNotificationRequest(identifier: id, content: content, trigger: trigger))
+            }
+        } else {
+            let comps = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: dueDate)
+            let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)
+            try? await center.add(UNNotificationRequest(identifier: todo.notificationID, content: content, trigger: trigger))
+        }
     }
 
     func cancel(for todo: Todo) {
         let center = UNUserNotificationCenter.current()
-        center.removePendingNotificationRequests(withIdentifiers: [todo.notificationID])
-        center.removeDeliveredNotifications(withIdentifiers: [todo.notificationID])
+        let ids = notificationIDs(for: todo)
+        center.removePendingNotificationRequests(withIdentifiers: ids)
+        center.removeDeliveredNotifications(withIdentifiers: ids)
+    }
+
+    private func notificationIDs(for todo: Todo) -> [String] {
+        todo.repeatWeekdays.isEmpty
+            ? [todo.notificationID]
+            : todo.repeatWeekdays.map { "\(todo.notificationID)_\($0)" }
     }
 
     private func formattedDate(_ date: Date) -> String {
