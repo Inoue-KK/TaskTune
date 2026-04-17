@@ -21,8 +21,9 @@ struct AddListView: View {
                 TextField("e.g. Shopping", text: $title)
                     .font(.body)
                     .padding()
-                    .background(Color(.systemGray6))
+                    .background(.ultraThinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.primary.opacity(0.06), lineWidth: 1))
                     .focused($isFocused)
 
                 let trimmed = title.trimmingCharacters(in: .whitespaces)
@@ -35,10 +36,10 @@ struct AddListView: View {
                     Text("Add")
                         .font(.body)
                         .fontWeight(.semibold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(trimmed.isEmpty ? Color.secondary : .white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(trimmed.isEmpty ? Color(.systemGray3) : .blue)
+                        .background(trimmed.isEmpty ? AnyShapeStyle(Color.primary.opacity(0.06)) : AnyShapeStyle(Color.blue))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .disabled(trimmed.isEmpty)
