@@ -17,6 +17,7 @@ struct ListsView: View {
     @State private var renamingList: TodoList?
     @State private var showingSettings = false
     @State private var listToDelete: TodoList?
+    @State private var addButtonPressed = false
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -171,19 +172,27 @@ struct ListsView: View {
     // MARK: - Add Button
 
     private var addButton: some View {
-        Button {
-            showingAddSheet = true
-        } label: {
-            Image(systemName: "plus")
-                .font(.title2)
-                .fontWeight(.semibold)
-                .foregroundStyle(.white)
-                .frame(width: 56, height: 56)
-                .background(.blue)
-                .clipShape(Circle())
-                .shadow(color: .blue.opacity(0.35), radius: 8, y: 4)
-        }
-        .padding(24)
+        Image(systemName: "plus")
+            .font(.title2)
+            .fontWeight(.semibold)
+            .foregroundStyle(.white)
+            .frame(width: 56, height: 56)
+            .contentShape(Circle())
+            .glassEffect(.regular.tint(.blue), in: Circle())
+            .scaleEffect(addButtonPressed ? 1.15 : 1.0)
+            .animation(.spring(duration: 0.2, bounce: 0.6), value: addButtonPressed)
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        guard !addButtonPressed else { return }
+                        addButtonPressed = true
+                    }
+                    .onEnded { _ in
+                        addButtonPressed = false
+                        showingAddSheet = true
+                    }
+            )
+            .padding(24)
     }
 }
 
