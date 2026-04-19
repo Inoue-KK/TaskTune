@@ -16,7 +16,6 @@ struct ContentView: View {
     @AppStorage("selectedSound") private var selectedSoundRaw = CompletionSound.bubble.rawValue
     @State private var showingAddSheet = false
     @State private var showingRenameSheet = false
-    @State private var addSheetDueDateEnabled = false
     @State private var editingTodo: Todo?
     @State private var hapticEngine: CHHapticEngine?
     @State private var addButtonPressed = false
@@ -63,16 +62,14 @@ struct ContentView: View {
                 .presentationCornerRadius(20)
         }
         .sheet(isPresented: $showingAddSheet) {
-            AddTodoView(todoList: todoList, dueDateEnabled: $addSheetDueDateEnabled)
-                .presentationDetents([addSheetDueDateEnabled ? .height(540) : .height(340)])
+            AddTodoView(todoList: todoList)
+                .presentationBackground(.background)
                 .presentationCornerRadius(20)
         }
         .sheet(item: $editingTodo) { todo in
             EditTodoView(todo: todo)
+                .presentationBackground(.background)
                 .presentationCornerRadius(20)
-        }
-        .onChange(of: showingAddSheet) { _, isShowing in
-            if !isShowing { addSheetDueDateEnabled = false }
         }
         .onAppear { prepareHapticEngine() }
     }
