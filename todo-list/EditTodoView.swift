@@ -17,6 +17,9 @@ struct EditTodoView: View {
     @State private var repeatInterval: RepeatInterval?
     @State private var repeatCount: Int
     @State private var repeatWeekdays: [Int]
+    @State private var repeatEndCondition: RepeatEndCondition?
+    @State private var repeatEndCount: Int
+    @State private var repeatEndDate: Date
     @State private var showNotificationDeniedAlert = false
     @State private var selectedDetent: PresentationDetent = .height(340)
     @FocusState private var isFocused: Bool
@@ -29,11 +32,19 @@ struct EditTodoView: View {
         _repeatInterval = State(initialValue: todo.repeatInterval)
         _repeatCount = State(initialValue: todo.repeatIntervalCount)
         _repeatWeekdays = State(initialValue: todo.repeatWeekdays)
-        _selectedDetent = State(initialValue: todo.dueDate != nil ? .height(540) : .height(340))
+        _repeatEndCondition = State(initialValue: todo.repeatEndCondition)
+        _repeatEndCount = State(initialValue: todo.repeatEndCount > 0 ? todo.repeatEndCount : 3)
+        _repeatEndDate = State(initialValue: todo.repeatEndDate ?? Calendar.current.date(byAdding: .month, value: 1, to: Date()) ?? Date())
+
+        let hasDueDate = todo.dueDate != nil
+        let hasEndValue = todo.repeatEndCondition != nil
+        let h: CGFloat = hasDueDate ? (hasEndValue ? 700 : 600) : 340
+        _selectedDetent = State(initialValue: .height(h))
     }
 
     var body: some View {
         NavigationStack {
+            ScrollView {
             VStack(spacing: 16) {
                 TextField("Title", text: $title)
                     .font(.body)
@@ -47,14 +58,18 @@ struct EditTodoView: View {
                     .font(.body)
                     .padding(.horizontal, 4)
                     .onChange(of: dueDateEnabled) { _, enabled in
-                        if !enabled { repeatInterval = nil; repeatWeekdays = [] }
-                        selectedDetent = enabled ? .height(540) : .height(340)
+                        if !enabled {
+                            repeatInterval = nil
+                            repeatWeekdays = []
+                            repeatEndCondition = nil
+                        }
+                        updateDetent()
                         guard enabled else { return }
                         Task {
                             let status = await NotificationManager.shared.authorizationStatus()
                             if status == .denied {
                                 dueDateEnabled = false
-                                selectedDetent = .height(340)
+                                updateDetent()
                                 showNotificationDeniedAlert = true
                             }
                         }
@@ -91,18 +106,27 @@ struct EditTodoView: View {
                         } else {
                             repeatWeekdays = []
                         }
+                        if newVal == nil { repeatEndCondition = nil }
+                        updateDetent()
                     }
 
                     if repeatInterval == .weekly {
                         weekdaySelector
                     } else if let interval = repeatInterval {
-                        Stepper(
-                            "Every \(repeatCount) \(interval.unitLabel(count: repeatCount))",
-                            value: $repeatCount,
-                            in: 1...99
-                        )
+                        HStack {
+                            Text("Every")
+                            Spacer()
+                            NumberStepperField(value: $repeatCount, range: 1...99)
+                            Text(interval.unitLabel(count: repeatCount))
+                                .foregroundStyle(.secondary)
+                                .frame(minWidth: 44, alignment: .leading)
+                        }
                         .padding(.horizontal, 4)
                         .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
+
+                    if repeatInterval != nil {
+                        endConditionPicker
                     }
                 }
 
@@ -114,6 +138,9 @@ struct EditTodoView: View {
                     todo.repeatInterval = dueDateEnabled ? repeatInterval : nil
                     todo.repeatWeekdays = (dueDateEnabled && repeatInterval == .weekly) ? repeatWeekdays : []
                     todo.repeatIntervalCount = (dueDateEnabled && repeatInterval != nil && repeatInterval != .weekly) ? repeatCount : 1
+                    todo.repeatEndCondition = (dueDateEnabled && repeatInterval != nil) ? repeatEndCondition : nil
+                    todo.repeatEndCount = repeatEndCount
+                    todo.repeatEndDate = (dueDateEnabled && repeatInterval != nil && repeatEndCondition == .onDate) ? repeatEndDate : nil
                     if dueDateEnabled && repeatInterval == .weekly && !repeatWeekdays.isEmpty {
                         todo.dueDate = nextWeekdayOccurrence(after: Date(), weekdays: repeatWeekdays, time: dueDate)
                     } else {
@@ -141,14 +168,23 @@ struct EditTodoView: View {
 
                 Button("Cancel") { dismiss() }
                     .foregroundStyle(.secondary)
-
-                Spacer()
             }
             .padding()
+            .background(
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }
+            )
+            }
             .navigationTitle("Edit Todo")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear { isFocused = true }
-            .presentationDetents([.height(340), .height(540)], selection: $selectedDetent)
+            .presentationDetents(
+                [.height(340), .height(600), .height(700)],
+                selection: $selectedDetent
+            )
             .alert("Notifications Disabled", isPresented: $showNotificationDeniedAlert) {
                 Button("Open Settings") {
                     if let url = URL(string: UIApplication.openSettingsURLString) {
@@ -164,5 +200,57 @@ struct EditTodoView: View {
 
     private var weekdaySelector: some View {
         WeekdaySelectorView(selectedWeekdays: $repeatWeekdays)
+    }
+
+    private var endConditionPicker: some View {
+        VStack(spacing: 12) {
+            Picker("Ends", selection: $repeatEndCondition) {
+                Text("Never").tag(Optional<RepeatEndCondition>.none)
+                Text("After").tag(Optional(RepeatEndCondition.afterCount))
+                Text("On Date").tag(Optional(RepeatEndCondition.onDate))
+            }
+            .pickerStyle(.menu)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 4)
+            .onChange(of: repeatEndCondition) { _, _ in updateDetent() }
+
+            if repeatEndCondition == .afterCount {
+                HStack {
+                    Text("After")
+                    Spacer()
+                    NumberStepperField(value: $repeatEndCount, range: 1...999)
+                    Text(repeatEndCount == 1 ? "repeat" : "repeats")
+                        .foregroundStyle(.secondary)
+                        .frame(minWidth: 55, alignment: .leading)
+                }
+                .padding(.horizontal, 4)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            } else if repeatEndCondition == .onDate {
+                DatePicker(
+                    "",
+                    selection: $repeatEndDate,
+                    in: dueDate...,
+                    displayedComponents: [.date]
+                )
+                .datePickerStyle(.compact)
+                .labelsHidden()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 4)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .transition(.opacity.combined(with: .move(edge: .top)))
+    }
+
+    private func updateDetent() {
+        let h: CGFloat
+        if !dueDateEnabled {
+            h = 340
+        } else if repeatInterval != nil && repeatEndCondition != nil {
+            h = 700
+        } else {
+            h = 600
+        }
+        selectedDetent = .height(h)
     }
 }

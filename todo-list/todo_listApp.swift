@@ -33,14 +33,21 @@ private func advanceOverdueRepeatingTodos(in container: ModelContainer) async {
 
         if interval == .weekly && !todo.repeatWeekdays.isEmpty {
             // 曜日指定繰り返し: 次の該当曜日へ進める
-            if todo.isCompleted {
-                todo.isCompleted = false
-                todo.missedCount = 0
+            let nextDate = nextWeekdayOccurrence(after: now, weekdays: todo.repeatWeekdays, time: dueDate)
+            todo.repeatOccurrenceCount += 1
+
+            if reachedEndCondition(todo: todo, nextDate: nextDate) {
+                stopRepeating(todo: todo)
             } else {
-                todo.missedCount += 1
+                if todo.isCompleted {
+                    todo.isCompleted = false
+                    todo.missedCount = 0
+                } else {
+                    todo.missedCount += 1
+                }
+                todo.dueDate = nextDate
+                await NotificationManager.shared.schedule(for: todo)
             }
-            todo.dueDate = nextWeekdayOccurrence(after: now, weekdays: todo.repeatWeekdays, time: dueDate)
-            await NotificationManager.shared.schedule(for: todo)
             didAdvance = true
         } else {
             // インターバル繰り返し: N日/週/月/年ごとに進める
@@ -53,14 +60,20 @@ private func advanceOverdueRepeatingTodos(in container: ModelContainer) async {
             }
             guard cycles > 0 else { continue }
 
-            if todo.isCompleted {
-                todo.isCompleted = false
-                todo.missedCount = 0
+            todo.repeatOccurrenceCount += cycles
+
+            if reachedEndCondition(todo: todo, nextDate: newDate) {
+                stopRepeating(todo: todo)
             } else {
-                todo.missedCount += cycles
+                if todo.isCompleted {
+                    todo.isCompleted = false
+                    todo.missedCount = 0
+                } else {
+                    todo.missedCount += cycles
+                }
+                todo.dueDate = newDate
+                await NotificationManager.shared.schedule(for: todo)
             }
-            todo.dueDate = newDate
-            await NotificationManager.shared.schedule(for: todo)
             didAdvance = true
         }
     }
@@ -68,6 +81,27 @@ private func advanceOverdueRepeatingTodos(in container: ModelContainer) async {
     if didAdvance {
         WidgetCenter.shared.reloadAllTimelines()
     }
+}
+
+private func reachedEndCondition(todo: Todo, nextDate: Date) -> Bool {
+    guard let endCond = todo.repeatEndCondition else { return false }
+    switch endCond {
+    case .afterCount:
+        return todo.repeatOccurrenceCount >= todo.repeatEndCount
+    case .onDate:
+        guard let endDate = todo.repeatEndDate else { return false }
+        return nextDate > endDate
+    }
+}
+
+private func stopRepeating(todo: Todo) {
+    todo.repeatInterval = nil
+    todo.repeatWeekdays = []
+    todo.repeatEndCondition = nil
+    todo.repeatEndDate = nil
+    todo.isCompleted = false
+    todo.missedCount = 0
+    NotificationManager.shared.cancel(for: todo)
 }
 
 @main
