@@ -52,7 +52,11 @@ class NotificationManager: NSObject {
 
         let content = UNMutableNotificationContent()
         content.title = todo.title
-        content.body = "Due " + formattedDate(dueDate)
+        if let listTitle = todo.todoList?.title, !listTitle.isEmpty {
+            content.body = listTitle + " · Due " + formattedDate(dueDate)
+        } else {
+            content.body = "Due " + formattedDate(dueDate)
+        }
         content.sound = .default
         content.categoryIdentifier = "TODO_DUE"
         content.userInfo = [
