@@ -18,22 +18,43 @@ struct ListsView: View {
     @State private var showingSettings = false
     @State private var listToDelete: TodoList?
     @State private var addButtonPressed = false
+    @State private var searchText = ""
+
+    private var trimmedSearch: String {
+        searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    private var isSearching: Bool { !trimmedSearch.isEmpty }
+
+    private var matchingLists: [TodoList] {
+        lists.filter { $0.title.localizedCaseInsensitiveContains(trimmedSearch) }
+    }
+
+    private var matchingTodos: [Todo] {
+        lists.flatMap { $0.todos }
+            .filter { $0.title.localizedCaseInsensitiveContains(trimmedSearch) }
+            .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+    }
 
     var body: some View {
         NavigationStack(path: $path) {
             ZStack(alignment: .bottomTrailing) {
                 Group {
-                    if lists.isEmpty {
+                    if isSearching {
+                        searchResultsView
+                    } else if lists.isEmpty {
                         emptyState
                     } else {
                         listOfLists
                     }
                 }
 
-                addButton
+                if !isSearching {
+                    addButton
+                }
             }
             .navigationTitle("Lists")
             .toolbarTitleDisplayMode(.inline)
+            .searchable(text: $searchText, prompt: "Search lists and todos")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -45,6 +66,9 @@ struct ListsView: View {
             }
             .navigationDestination(isPresented: $showingSettings) {
                 SettingsView()
+            }
+            .navigationDestination(for: TodoList.self) { list in
+                ContentView(todoList: list)
             }
         }
         .onAppear { lists = savedLists }
@@ -129,9 +153,71 @@ struct ListsView: View {
         }
         .listStyle(.insetGrouped)
         .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 104) }
-        .navigationDestination(for: TodoList.self) { list in
-            ContentView(todoList: list)
+    }
+
+    // MARK: - Search Results
+
+    private var searchResultsView: some View {
+        List {
+            if !matchingLists.isEmpty {
+                Section("Lists") {
+                    ForEach(matchingLists) { list in
+                        NavigationLink(value: list) {
+                            rowContent(for: list)
+                        }
+                    }
+                }
+            }
+
+            if !matchingTodos.isEmpty {
+                Section("Todos") {
+                    ForEach(matchingTodos) { todo in
+                        Button {
+                            if let parent = todo.todoList {
+                                searchText = ""
+                                path.append(parent)
+                            }
+                        } label: {
+                            searchTodoRow(todo)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+
+            if matchingLists.isEmpty && matchingTodos.isEmpty {
+                Section {
+                    Text("No results")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .listRowBackground(Color.clear)
+                }
+            }
         }
+        .listStyle(.insetGrouped)
+    }
+
+    private func searchTodoRow(_ todo: Todo) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(todo.title)
+                    .font(.body)
+                    .foregroundStyle(todo.isCompleted ? Color(.systemGray2) : .primary)
+                    .strikethrough(todo.isCompleted, color: Color(.systemGray2))
+                if let listTitle = todo.todoList?.title {
+                    Text(listTitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(Color(.systemGray3))
+        }
+        .padding(.vertical, 4)
+        .contentShape(Rectangle())
     }
 
     // MARK: - Row Content
