@@ -18,6 +18,10 @@ class NotificationManager: NSObject {
     static let shared = NotificationManager()
     var modelContainer: ModelContainer?
 
+    /// 繰り返しTodoについて、未来サイクル分を一度に登録する最大件数。
+    /// 大きいほどアプリ未起動でも通知が途切れにくいが、iOSの 64 件 pending 上限に注意。
+    static let maxScheduledOccurrences = 7
+
     private override init() {
         super.init()
         let center = UNUserNotificationCenter.current()
@@ -46,10 +50,42 @@ class NotificationManager: NSObject {
 
     func schedule(for todo: Todo) async {
         let center = UNUserNotificationCenter.current()
-        center.removePendingNotificationRequests(withIdentifiers: notificationIDs(for: todo))
+        cancel(for: todo)
 
-        guard let dueDate = todo.dueDate, !todo.isCompleted, dueDate > Date() else { return }
+        guard let dueDate = todo.dueDate else { return }
 
+        // 単発（繰り返しなし）
+        if todo.repeatInterval == nil {
+            guard !todo.isCompleted, dueDate > Date() else { return }
+            let content = makeContent(for: todo, dueDate: dueDate)
+            let trigger = makeTrigger(for: dueDate)
+            try? await center.add(UNNotificationRequest(identifier: todo.notificationID, content: content, trigger: trigger))
+            return
+        }
+
+        // 繰り返し: 未来 N サイクル分を先読み登録（完了済みなら現サイクルはスキップ）
+        let dates = upcomingCycleDates(for: todo, count: Self.maxScheduledOccurrences)
+        for (index, date) in dates.enumerated() {
+            let content = makeContent(for: todo, dueDate: date)
+            let trigger = makeTrigger(for: date)
+            let id = "\(todo.notificationID)_\(index)"
+            try? await center.add(UNNotificationRequest(identifier: id, content: content, trigger: trigger))
+        }
+    }
+
+    func cancel(for todo: Todo) {
+        let prefix = todo.notificationID
+        var ids = Set<String>([prefix])
+        // 新スキーム: 0..N-1 のサイクルインデックス
+        for i in 0..<Self.maxScheduledOccurrences { ids.insert("\(prefix)_\(i)") }
+        // 旧スキーム互換: 曜日番号 1..7（Weekly 曜日指定で使われていた）
+        for i in 1...7 { ids.insert("\(prefix)_\(i)") }
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(withIdentifiers: Array(ids))
+        center.removeDeliveredNotifications(withIdentifiers: Array(ids))
+    }
+
+    private func makeContent(for todo: Todo, dueDate: Date) -> UNMutableNotificationContent {
         let content = UNMutableNotificationContent()
         content.title = todo.title
         if let listTitle = todo.todoList?.title, !listTitle.isEmpty {
@@ -63,39 +99,12 @@ class NotificationManager: NSObject {
             "notificationID": todo.notificationID,
             "listTitle": todo.todoList?.title ?? ""
         ]
-
-        if !todo.repeatWeekdays.isEmpty {
-            let now = Date()
-            let timeComps = Calendar.current.dateComponents([.hour, .minute], from: dueDate)
-            for weekday in todo.repeatWeekdays {
-                var comps = timeComps
-                comps.weekday = weekday
-                guard let nextDate = Calendar.current.nextDate(after: now, matching: comps, matchingPolicy: .nextTime) else { continue }
-                let trigger = UNCalendarNotificationTrigger(
-                    dateMatching: Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: nextDate),
-                    repeats: false
-                )
-                let id = "\(todo.notificationID)_\(weekday)"
-                try? await center.add(UNNotificationRequest(identifier: id, content: content, trigger: trigger))
-            }
-        } else {
-            let comps = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: dueDate)
-            let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)
-            try? await center.add(UNNotificationRequest(identifier: todo.notificationID, content: content, trigger: trigger))
-        }
+        return content
     }
 
-    func cancel(for todo: Todo) {
-        let center = UNUserNotificationCenter.current()
-        let ids = notificationIDs(for: todo)
-        center.removePendingNotificationRequests(withIdentifiers: ids)
-        center.removeDeliveredNotifications(withIdentifiers: ids)
-    }
-
-    private func notificationIDs(for todo: Todo) -> [String] {
-        todo.repeatWeekdays.isEmpty
-            ? [todo.notificationID]
-            : todo.repeatWeekdays.map { "\(todo.notificationID)_\($0)" }
+    private func makeTrigger(for date: Date) -> UNCalendarNotificationTrigger {
+        let comps = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: date)
+        return UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)
     }
 
     private func formattedDate(_ date: Date) -> String {
@@ -143,7 +152,8 @@ extension NotificationManager: UNUserNotificationCenterDelegate {
             todo.isCompleted = true
             todo.missedCount = 0
             try? context.save()
-            cancel(for: todo)
+            // 繰り返しTodoは現サイクルだけ抑止し、未来サイクルは維持される
+            await schedule(for: todo)
 
         default:
             break

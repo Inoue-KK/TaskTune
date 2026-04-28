@@ -114,3 +114,45 @@ func nextWeekdayOccurrence(after date: Date, weekdays: [Int], time: Date) -> Dat
     }
     return earliest ?? time
 }
+
+/// 繰り返しTodoの、`date` 以降で最も近い次サイクル日時を返す
+func nextCycleDate(after date: Date, for todo: Todo) -> Date? {
+    guard let interval = todo.repeatInterval else { return nil }
+    if interval == .weekly && !todo.repeatWeekdays.isEmpty {
+        return nextWeekdayOccurrence(after: date, weekdays: todo.repeatWeekdays, time: date)
+    }
+    return Calendar.current.date(byAdding: interval.calendarComponent, value: todo.repeatIntervalCount, to: date)
+}
+
+/// 繰り返しTodoについて、これからスケジュールすべき未来サイクル日時を最大 `count` 件返す。
+/// 終了条件（afterCount / onDate）と完了状態（完了済みなら現サイクルをスキップ）を尊重する。
+func upcomingCycleDates(for todo: Todo, count: Int) -> [Date] {
+    guard let baseDueDate = todo.dueDate, todo.repeatInterval != nil else { return [] }
+    let now = Date()
+    var dates: [Date] = []
+    var current = baseDueDate
+    var cycleNumber = todo.repeatOccurrenceCount + 1
+
+    if todo.isCompleted {
+        guard let next = nextCycleDate(after: current, for: todo) else { return [] }
+        current = next
+        cycleNumber += 1
+    }
+
+    while current <= now {
+        guard let next = nextCycleDate(after: current, for: todo) else { return dates }
+        current = next
+        cycleNumber += 1
+    }
+
+    while dates.count < count {
+        if todo.repeatEndCondition == .afterCount, cycleNumber > todo.repeatEndCount { break }
+        if todo.repeatEndCondition == .onDate, let endDate = todo.repeatEndDate, current > endDate { break }
+        dates.append(current)
+        guard let next = nextCycleDate(after: current, for: todo) else { break }
+        current = next
+        cycleNumber += 1
+    }
+
+    return dates
+}

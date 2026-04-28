@@ -27,38 +27,22 @@ private func advanceOverdueRepeatingTodos(in container: ModelContainer) async {
 
     var didAdvance = false
     for todo in todos {
-        guard let interval = todo.repeatInterval,
-              let dueDate = todo.dueDate,
-              dueDate < now else { continue }
+        guard let dueDate = todo.dueDate else { continue }
 
-        if interval == .weekly && !todo.repeatWeekdays.isEmpty {
-            // 曜日指定繰り返し: 次の該当曜日へ進める
-            let nextDate = nextWeekdayOccurrence(after: now, weekdays: todo.repeatWeekdays, time: dueDate)
-            todo.repeatOccurrenceCount += 1
-
-            if reachedEndCondition(todo: todo, nextDate: nextDate) {
-                stopRepeating(todo: todo)
-            } else {
-                if todo.isCompleted {
-                    todo.isCompleted = false
-                    todo.missedCount = 0
-                } else {
-                    todo.missedCount += 1
-                }
-                todo.dueDate = nextDate
-                await NotificationManager.shared.schedule(for: todo)
-            }
-            didAdvance = true
-        } else {
-            // インターバル繰り返し: N日/週/月/年ごとに進める
+        if dueDate < now {
+            // dueDate を未来へ進める。途中の missed サイクルをカウント
             var newDate = dueDate
             var cycles = 0
             while newDate <= now {
-                guard let next = Calendar.current.date(byAdding: interval.calendarComponent, value: todo.repeatIntervalCount, to: newDate) else { break }
+                guard let next = nextCycleDate(after: newDate, for: todo) else { break }
                 newDate = next
                 cycles += 1
             }
-            guard cycles > 0 else { continue }
+            guard cycles > 0 else {
+                // 例えば endCondition で計算不能 → スケジュールだけ更新して継続
+                await NotificationManager.shared.schedule(for: todo)
+                continue
+            }
 
             todo.repeatOccurrenceCount += cycles
 
@@ -75,6 +59,10 @@ private func advanceOverdueRepeatingTodos(in container: ModelContainer) async {
                 await NotificationManager.shared.schedule(for: todo)
             }
             didAdvance = true
+        } else {
+            // dueDate がまだ未来でも、起動の度に未来サイクル分の通知を補充する
+            // （pre-scheduled 通知が次々と発火して pending が減るため）
+            await NotificationManager.shared.schedule(for: todo)
         }
     }
 

@@ -123,18 +123,16 @@ struct ContentView: View {
                     todo.isCompleted.toggle()
                 }
                 if completing {
-                    if todo.repeatInterval == nil {
-                        NotificationManager.shared.cancel(for: todo)
-                    } else {
+                    if todo.repeatInterval != nil {
                         todo.missedCount = 0
                     }
                     if soundEnabled {
                         playSound(CompletionSound(rawValue: selectedSoundRaw) ?? .bubble)
                     }
                     if hapticEnabled { playHaptic() }
-                } else {
-                    Task { await NotificationManager.shared.schedule(for: todo) }
                 }
+                // 繰り返しTodoは現サイクルだけ抑止し、未来サイクルは維持される
+                Task { await NotificationManager.shared.schedule(for: todo) }
             }
 
             VStack(alignment: .leading, spacing: 2) {
