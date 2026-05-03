@@ -14,6 +14,7 @@ struct ContentView: View {
     @AppStorage("soundEnabled") private var soundEnabled = true
     @AppStorage("hapticEnabled") private var hapticEnabled = true
     @AppStorage("selectedSound") private var selectedSoundRaw = CompletionSound.bubble.rawValue
+    @AppStorage("accentColor") private var accentColorHex = "#007AFF"
     @State private var showingAddSheet = false
     @State private var showingRenameSheet = false
     @State private var editingTodo: Todo?
@@ -241,7 +242,7 @@ struct ContentView: View {
             .foregroundStyle(.white)
             .frame(width: 56, height: 56)
             .contentShape(Circle())
-            .glassEffect(.regular.tint(.blue), in: Circle())
+            .glassEffect(.regular.tint(Color(hex: accentColorHex) ?? .blue), in: Circle())
             .scaleEffect(addButtonPressed ? 1.15 : 1.0)
             .animation(.spring(duration: 0.2, bounce: 0.6), value: addButtonPressed)
             .gesture(
@@ -310,11 +311,12 @@ private struct TodoCheckboxButton: View {
     var onRelease: () -> Void
 
     @State private var pressing = false
+    @AppStorage("accentColor") private var accentColorHex = "#007AFF"
 
     var body: some View {
         Image(systemName: todo.isCompleted ? "checkmark.circle.fill" : "circle")
             .font(.title3)
-            .foregroundStyle(todo.isCompleted ? .green : Color(.systemGray3))
+            .foregroundStyle(todo.isCompleted ? (Color(hex: accentColorHex) ?? .blue) : Color(.systemGray3))
             .contentTransition(.symbolEffect(.replace))
             .gesture(
                 DragGesture(minimumDistance: 0)

@@ -315,7 +315,7 @@ struct WidgetThemeEditView: View {
 
 /// UIColorPickerViewController をポップオーバーとして表示するボタン。
 /// ColorPicker と異なり、タップ元のビューにアンカーされるため画面全体を覆わない。
-private struct UIColorPickerButton: UIViewRepresentable {
+struct UIColorPickerButton: UIViewRepresentable {
     let title: String
     @Binding var color: Color
 

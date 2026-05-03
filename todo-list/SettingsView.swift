@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AVFoundation
+import WidgetKit
 
 enum CompletionSound: String, CaseIterable {
     case bubble, boing, levelUp, sparkle, click, clack, fanfare
@@ -135,17 +136,50 @@ private class SoundPlayer {
     }
 }
 
+// MARK: - Color Hex Helpers
+
+extension Color {
+    init?(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+        guard hex.count == 6, let value = UInt64(hex, radix: 16) else { return nil }
+        self.init(
+            red: Double((value >> 16) & 0xFF) / 255,
+            green: Double((value >> 8) & 0xFF) / 255,
+            blue: Double(value & 0xFF) / 255
+        )
+    }
+
+    var hexString: String {
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        UIColor(self).getRed(&r, green: &g, blue: &b, alpha: &a)
+        return String(format: "#%02X%02X%02X", Int(r * 255), Int(g * 255), Int(b * 255))
+    }
+}
+
 // MARK: - Views
 
 struct SettingsView: View {
     @AppStorage("soundEnabled") private var soundEnabled = true
     @AppStorage("hapticEnabled") private var hapticEnabled = true
     @AppStorage("selectedSound") private var selectedSoundRaw = CompletionSound.bubble.rawValue
+    @AppStorage("accentColor") private var accentColorHex = "#007AFF"
+
+    private var accentColorBinding: Binding<Color> {
+        Binding(
+            get: { Color(hex: accentColorHex) ?? .blue },
+            set: { accentColorHex = $0.hexString }
+        )
+    }
 
     var body: some View {
         Form {
+            Section("Appearance") {
+                colorPickerRow("Accent Color", color: accentColorBinding)
+            }
+
             Section {
                 Toggle("Sound", isOn: $soundEnabled)
+                    .tint(Color(hex: accentColorHex) ?? .blue)
                 if soundEnabled {
                     NavigationLink {
                         SoundPickerView(selectedSoundRaw: $selectedSoundRaw)
@@ -157,6 +191,7 @@ struct SettingsView: View {
                     }
                 }
                 Toggle("Haptic Feedback", isOn: $hapticEnabled)
+                    .tint(Color(hex: accentColorHex) ?? .blue)
             }
 
             Section("Widget") {
@@ -174,6 +209,18 @@ struct SettingsView: View {
         }
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    @ViewBuilder
+    private func colorPickerRow(_ label: String, color: Binding<Color>) -> some View {
+        HStack {
+            Text(label)
+            Spacer()
+            UIColorPickerButton(title: label, color: color)
+                .frame(width: 29, height: 29)
+                .clipShape(Circle())
+                .overlay(Circle().strokeBorder(Color(.separator), lineWidth: 0.5))
+        }
     }
 }
 

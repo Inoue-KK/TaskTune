@@ -19,6 +19,7 @@ struct ListsView: View {
     @State private var listToDelete: TodoList?
     @State private var addButtonPressed = false
     @State private var searchText = ""
+    @AppStorage("accentColor") private var accentColorHex = "#007AFF"
 
     private var trimmedSearch: String {
         searchText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -61,6 +62,7 @@ struct ListsView: View {
                         showingSettings = true
                     } label: {
                         Image(systemName: "gearshape")
+                            .foregroundStyle(Color(hex: accentColorHex) ?? .blue)
                     }
                 }
             }
@@ -264,7 +266,7 @@ struct ListsView: View {
             .foregroundStyle(.white)
             .frame(width: 56, height: 56)
             .contentShape(Circle())
-            .glassEffect(.regular.tint(.blue), in: Circle())
+            .glassEffect(.regular.tint(Color(hex: accentColorHex) ?? .blue), in: Circle())
             .scaleEffect(addButtonPressed ? 1.15 : 1.0)
             .animation(.spring(duration: 0.2, bounce: 0.6), value: addButtonPressed)
             .gesture(
