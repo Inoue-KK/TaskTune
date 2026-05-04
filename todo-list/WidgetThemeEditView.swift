@@ -47,45 +47,40 @@ struct WidgetThemeEditView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if verticalSizeClass == .compact {
-                    // 横向き: 左42%にプレビュー、右58%に設定リスト
-                    HStack(spacing: 0) {
-                        previewPanel
-                            .containerRelativeFrame(.horizontal) { w, _ in w * 0.42 }
-                            .frame(maxHeight: .infinity)
-                        settingsPanel
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    }
-                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { availableHeight = $0 }
-                } else {
-                    // 縦向き: 上にプレビュー、下に設定リスト
-                    VStack(spacing: 0) {
-                        previewPanel
-                        settingsPanel
-                    }
+        Group {
+            if verticalSizeClass == .compact {
+                // 横向き: 左42%にプレビュー、右58%に設定リスト
+                HStack(spacing: 0) {
+                    previewPanel
+                        .containerRelativeFrame(.horizontal) { w, _ in w * 0.42 }
+                        .frame(maxHeight: .infinity)
+                    settingsPanel
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { availableHeight = $0 }
+            } else {
+                // 縦向き: 上にプレビュー、下に設定リスト
+                VStack(spacing: 0) {
+                    previewPanel
+                    settingsPanel
                 }
             }
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(Color.clear, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        if theme.name.trimmingCharacters(in: .whitespaces).isEmpty {
-                            showNameError = true
-                            scrollToName = true
-                        } else {
-                            onSave(theme)
-                            dismiss()
-                        }
+        }
+        .navigationTitle("")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Color.clear, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Save") {
+                    if theme.name.trimmingCharacters(in: .whitespaces).isEmpty {
+                        showNameError = true
+                        scrollToName = true
+                    } else {
+                        onSave(theme)
+                        dismiss()
                     }
-                    .disabled(theme.name.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
+                .disabled(theme.name.trimmingCharacters(in: .whitespaces).isEmpty)
             }
         }
     }
