@@ -23,6 +23,7 @@ struct EditTodoView: View {
     @State private var showNotificationDeniedAlert = false
     @State private var selectedDetent: PresentationDetent = .height(340)
     @FocusState private var isFocused: Bool
+    @AppStorage("accentColor") private var accentColorHex = "#007AFF"
 
     init(todo: Todo) {
         self.todo = todo
@@ -55,6 +56,7 @@ struct EditTodoView: View {
                     .focused($isFocused)
 
                 Toggle("Due Date", isOn: $dueDateEnabled.animation())
+                    .tint(Color(hex: accentColorHex) ?? .blue)
                     .font(.body)
                     .padding(.horizontal, 4)
                     .onChange(of: dueDateEnabled) { _, enabled in
@@ -158,10 +160,10 @@ struct EditTodoView: View {
                     Text("Save")
                         .font(.body)
                         .fontWeight(.semibold)
-                        .foregroundStyle(trimmed.isEmpty ? Color.secondary : .white)
+                        .foregroundStyle(trimmed.isEmpty ? Color.secondary : ((Color(hex: accentColorHex) ?? .blue).isLight ? Color(white: 0.3) : Color.white))
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(trimmed.isEmpty ? AnyShapeStyle(Color.primary.opacity(0.06)) : AnyShapeStyle(Color.blue))
+                        .background(trimmed.isEmpty ? AnyShapeStyle(Color.primary.opacity(0.06)) : AnyShapeStyle(Color(hex: accentColorHex) ?? .blue))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .disabled(trimmed.isEmpty)

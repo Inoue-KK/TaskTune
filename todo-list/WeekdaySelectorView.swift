@@ -12,6 +12,7 @@ struct WeekdaySelectorView: View {
 
     private let symbols = Calendar.current.shortWeekdaySymbols  // ["Sun", "Mon", ...]
     @State private var pressedWeekday: Int? = nil
+    @AppStorage("accentColor") private var accentColorHex = "#007AFF"
 
     var body: some View {
         HStack(spacing: 6) {
@@ -30,11 +31,11 @@ struct WeekdaySelectorView: View {
         return Text(String(symbols[weekday - 1].prefix(2)))
             .font(.caption)
             .fontWeight(.semibold)
-            .foregroundStyle(isSelected ? Color.white : Color.primary)
+            .foregroundStyle(isSelected ? ((Color(hex: accentColorHex) ?? .blue).isLight ? Color(white: 0.3) : Color.white) : Color.primary)
             .frame(maxWidth: .infinity)
             .frame(height: 36)
             .contentShape(Circle())
-            .glassEffect(isSelected ? .regular.tint(Color.blue) : .regular, in: Circle())
+            .glassEffect(isSelected ? .regular.tint(Color(hex: accentColorHex) ?? .blue) : .regular, in: Circle())
             .scaleEffect(isPressed ? 1.18 : (isSelected ? 1.1 : 1.0))
             .animation(.spring(duration: 0.2, bounce: 0.6), value: isPressed)
             .animation(.spring(duration: 0.35, bounce: 0.55), value: isSelected)

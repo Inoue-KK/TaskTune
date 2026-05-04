@@ -24,6 +24,7 @@ struct AddTodoView: View {
     @State private var repeatEndDate: Date = Calendar.current.date(byAdding: .month, value: 1, to: Date()) ?? Date()
     @State private var showNotificationDeniedAlert = false
     @State private var selectedDetent: PresentationDetent = .height(340)
+    @AppStorage("accentColor") private var accentColorHex = "#007AFF"
     @FocusState private var isFocused: Bool
 
     var body: some View {
@@ -39,6 +40,7 @@ struct AddTodoView: View {
                     .focused($isFocused)
 
                 Toggle("Add Due Date", isOn: $dueDateEnabled.animation())
+                    .tint(Color(hex: accentColorHex) ?? .blue)
                     .font(.body)
                     .padding(.horizontal, 4)
                     .onChange(of: dueDateEnabled) { _, enabled in
@@ -146,10 +148,10 @@ struct AddTodoView: View {
                     Text("Add")
                         .font(.body)
                         .fontWeight(.semibold)
-                        .foregroundStyle(trimmed.isEmpty ? Color.secondary : .white)
+                        .foregroundStyle(trimmed.isEmpty ? Color.secondary : ((Color(hex: accentColorHex) ?? .blue).isLight ? Color(white: 0.3) : Color.white))
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(trimmed.isEmpty ? AnyShapeStyle(Color.primary.opacity(0.06)) : AnyShapeStyle(Color.blue))
+                        .background(trimmed.isEmpty ? AnyShapeStyle(Color.primary.opacity(0.06)) : AnyShapeStyle(Color(hex: accentColorHex) ?? .blue))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .disabled(trimmed.isEmpty)

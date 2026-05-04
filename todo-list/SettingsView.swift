@@ -154,6 +154,13 @@ extension Color {
         UIColor(self).getRed(&r, green: &g, blue: &b, alpha: &a)
         return String(format: "#%02X%02X%02X", Int(r * 255), Int(g * 255), Int(b * 255))
     }
+
+    // 明度が高い（薄い）色かどうか（ボタンテキスト色の自動切替に使用）
+    var isLight: Bool {
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        UIColor(self).getRed(&r, green: &g, blue: &b, alpha: &a)
+        return 0.299 * r + 0.587 * g + 0.114 * b > 0.6
+    }
 }
 
 // MARK: - Views
@@ -226,6 +233,7 @@ struct SettingsView: View {
 
 struct SoundPickerView: View {
     @Binding var selectedSoundRaw: String
+    @AppStorage("accentColor") private var accentColorHex = "#007AFF"
 
     var body: some View {
         List(CompletionSound.allCases, id: \.rawValue) { sound in
@@ -244,7 +252,7 @@ struct SoundPickerView: View {
                     Spacer()
                     if selectedSoundRaw == sound.rawValue {
                         Image(systemName: "checkmark")
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(Color(hex: accentColorHex) ?? .blue)
                     }
                 }
             }

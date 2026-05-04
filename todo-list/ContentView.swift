@@ -239,7 +239,7 @@ struct ContentView: View {
         Image(systemName: "plus")
             .font(.title2)
             .fontWeight(.semibold)
-            .foregroundStyle(.white)
+            .foregroundStyle((Color(hex: accentColorHex) ?? .blue).isLight ? Color(white: 0.3) : Color.white)
             .frame(width: 56, height: 56)
             .contentShape(Circle())
             .glassEffect(.regular.tint(Color(hex: accentColorHex) ?? .blue), in: Circle())
@@ -316,7 +316,11 @@ private struct TodoCheckboxButton: View {
     var body: some View {
         Image(systemName: todo.isCompleted ? "checkmark.circle.fill" : "circle")
             .font(.title3)
-            .foregroundStyle(todo.isCompleted ? (Color(hex: accentColorHex) ?? .blue) : Color(.systemGray3))
+            .symbolRenderingMode(.palette)
+            .foregroundStyle(
+                todo.isCompleted ? ((Color(hex: accentColorHex) ?? .blue).isLight ? Color(white: 0.3) : Color.white) : Color(.systemGray3),
+                todo.isCompleted ? (Color(hex: accentColorHex) ?? .blue) : Color(.systemGray3)
+            )
             .contentTransition(.symbolEffect(.replace))
             .gesture(
                 DragGesture(minimumDistance: 0)

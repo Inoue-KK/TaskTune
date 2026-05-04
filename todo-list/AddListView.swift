@@ -14,6 +14,7 @@ struct AddListView: View {
     let nextSortOrder: Int
     @State private var title = ""
     @FocusState private var isFocused: Bool
+    @AppStorage("accentColor") private var accentColorHex = "#007AFF"
 
     var body: some View {
         NavigationStack {
@@ -36,10 +37,10 @@ struct AddListView: View {
                     Text("Add")
                         .font(.body)
                         .fontWeight(.semibold)
-                        .foregroundStyle(trimmed.isEmpty ? Color.secondary : .white)
+                        .foregroundStyle(trimmed.isEmpty ? Color.secondary : ((Color(hex: accentColorHex) ?? .blue).isLight ? Color(white: 0.3) : Color.white))
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(trimmed.isEmpty ? AnyShapeStyle(Color.primary.opacity(0.06)) : AnyShapeStyle(Color.blue))
+                        .background(trimmed.isEmpty ? AnyShapeStyle(Color.primary.opacity(0.06)) : AnyShapeStyle(Color(hex: accentColorHex) ?? .blue))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .disabled(trimmed.isEmpty)

@@ -263,7 +263,7 @@ struct ListsView: View {
         Image(systemName: "plus")
             .font(.title2)
             .fontWeight(.semibold)
-            .foregroundStyle(.white)
+            .foregroundStyle((Color(hex: accentColorHex) ?? .blue).isLight ? Color(white: 0.3) : Color.white)
             .frame(width: 56, height: 56)
             .contentShape(Circle())
             .glassEffect(.regular.tint(Color(hex: accentColorHex) ?? .blue), in: Circle())
