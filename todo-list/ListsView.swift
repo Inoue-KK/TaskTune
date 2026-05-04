@@ -62,7 +62,6 @@ struct ListsView: View {
                         showingSettings = true
                     } label: {
                         Image(systemName: "gearshape")
-                            .foregroundStyle(Color(hex: accentColorHex) ?? .blue)
                     }
                 }
             }
