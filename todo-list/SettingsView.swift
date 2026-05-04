@@ -244,10 +244,11 @@ struct SoundPickerView: View {
                     Spacer()
                     if selectedSoundRaw == sound.rawValue {
                         Image(systemName: "checkmark")
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(.primary)
                     }
                 }
             }
+            .buttonStyle(.plain)
         }
         .navigationTitle("Sound Effect")
         .navigationBarTitleDisplayMode(.inline)
