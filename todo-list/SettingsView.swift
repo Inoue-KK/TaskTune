@@ -255,6 +255,7 @@ struct SoundPickerView: View {
                             .foregroundStyle(Color(hex: accentColorHex) ?? .blue)
                     }
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
         }
