@@ -199,8 +199,11 @@ struct WidgetThemeEditView: View {
 
                 Section("Display") {
                     Toggle("Show Remaining Count", isOn: $theme.showRemainingCount)
+                        .tint(theme.accentColor)
                     Toggle("Show Completed Count", isOn: $theme.showCompletedCount)
+                        .tint(theme.accentColor)
                     Toggle("Show Completed (Large only)", isOn: $theme.showCompleted)
+                        .tint(theme.accentColor)
                 }
             }
             .listStyle(.insetGrouped)
