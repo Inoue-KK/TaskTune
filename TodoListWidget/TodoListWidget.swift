@@ -420,7 +420,7 @@ struct SmallWidgetView: View {
         return VStack(alignment: .leading, spacing: 0) {
             if entry.pendingTodos.isEmpty {
                 HStack {
-                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                    Image(systemName: "checkmark.circle.fill").foregroundStyle(entry.theme.accentColor)
                     Text("All done!").font(.caption).foregroundStyle(entry.theme.secondaryTextColor)
                 }
             } else {
@@ -469,7 +469,7 @@ struct MediumWidgetView: View {
         VStack(alignment: .leading, spacing: 0) {
             if entry.pendingTodos.isEmpty {
                 HStack {
-                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                    Image(systemName: "checkmark.circle.fill").foregroundStyle(entry.theme.accentColor)
                     Text("All done!").font(.subheadline).foregroundStyle(entry.theme.secondaryTextColor)
                 }
             } else {
@@ -521,7 +521,7 @@ struct LargeWidgetView: View {
         VStack(alignment: .leading, spacing: 0) {
             if entry.pendingTodos.isEmpty && !showCompletedSection {
                 HStack {
-                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                    Image(systemName: "checkmark.circle.fill").foregroundStyle(entry.theme.accentColor)
                     Text("All done!").font(.subheadline).foregroundStyle(entry.theme.secondaryTextColor)
                 }
             } else {
