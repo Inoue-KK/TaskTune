@@ -160,7 +160,7 @@ enum WidgetCheckboxStyleValue: String, Codable, CaseIterable {
 
 // MARK: - Widget Theme
 
-struct WidgetTheme: Codable, Identifiable, Hashable, Sendable {
+struct WidgetTheme: Codable, Identifiable, Sendable {
     var id: UUID
     var name: String
     var accentColorComponents: ColorComponents
@@ -213,9 +213,6 @@ struct WidgetTheme: Codable, Identifiable, Hashable, Sendable {
         showCompletedCount = try c.decode(Bool.self, forKey: .showCompletedCount)
         showCompleted = try c.decode(Bool.self, forKey: .showCompleted)
     }
-
-    func hash(into hasher: inout Hasher) { hasher.combine(id) }
-    static func == (lhs: WidgetTheme, rhs: WidgetTheme) -> Bool { lhs.id == rhs.id }
 
     var accentColor: Color { accentColorComponents.color }
     var backgroundColor: Color { backgroundColorComponents?.color ?? Color(.systemBackground) }

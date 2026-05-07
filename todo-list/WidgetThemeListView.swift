@@ -43,7 +43,7 @@ struct WidgetThemeListView: View {
                 }
             }
         }
-        .navigationDestination(item: $editingTheme) { theme in
+        .fullScreenCover(item: $editingTheme) { theme in
             WidgetThemeEditView(theme: theme) { updatedTheme in
                 if let index = themes.firstIndex(where: { $0.id == updatedTheme.id }) {
                     themes[index] = updatedTheme
