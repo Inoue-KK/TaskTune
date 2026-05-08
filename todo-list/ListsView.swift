@@ -101,15 +101,8 @@ struct ListsView: View {
                 .presentationDetents([.height(280)])
                 .presentationCornerRadius(20)
         }
-        .confirmationDialog(
-            "Delete \"\(listToDelete?.title ?? "")\"?",
-            isPresented: Binding(
-                get: { listToDelete != nil },
-                set: { if !$0 { listToDelete = nil } }
-            ),
-            titleVisibility: .visible
-        ) {
-            Button("Delete List", role: .destructive) {
+        .alert("Delete \"\(listToDelete?.title ?? "")\"?", isPresented: Binding(get: { listToDelete != nil }, set: { if !$0 { listToDelete = nil } })) {
+            Button("Delete", role: .destructive) {
                 if let list = listToDelete {
                     context.delete(list)
                     listToDelete = nil
@@ -129,12 +122,13 @@ struct ListsView: View {
                 NavigationLink(value: list) {
                     rowContent(for: list)
                 }
-                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                    Button(role: .destructive) {
+                .swipeActions(edge: .trailing) {
+                    Button {
                         listToDelete = list
                     } label: {
                         Label("Delete", systemImage: "trash")
                     }
+                    .tint(.red)
                 }
                 .swipeActions(edge: .leading) {
                     Button {
