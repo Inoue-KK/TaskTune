@@ -8,7 +8,7 @@ import WidgetKit
 
 struct WidgetThemeListView: View {
     @State private var themes: [WidgetTheme] = WidgetThemeStore.loadAll()
-    @State private var editingTheme: WidgetTheme?
+    @State private var newTheme: WidgetTheme?
 
     private static let previewData = WidgetPreviewData()
 
@@ -25,7 +25,7 @@ struct WidgetThemeListView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    editingTheme = WidgetTheme(
+                    newTheme = WidgetTheme(
                         id: UUID(),
                         name: defaultThemeName(),
                         accentColorComponents: ColorComponents(red: 0, green: 0.478, blue: 1.0, opacity: 1.0),
@@ -43,14 +43,12 @@ struct WidgetThemeListView: View {
                 }
             }
         }
-        .fullScreenCover(item: $editingTheme) { theme in
-            WidgetThemeEditView(theme: theme) { updatedTheme in
-                if let index = themes.firstIndex(where: { $0.id == updatedTheme.id }) {
-                    themes[index] = updatedTheme
-                } else {
+        .sheet(item: $newTheme) { theme in
+            NavigationStack {
+                WidgetThemeEditView(theme: theme, isModal: true) { updatedTheme in
                     themes.append(updatedTheme)
+                    save()
                 }
-                save()
             }
         }
     }
@@ -60,22 +58,21 @@ struct WidgetThemeListView: View {
     private var themeList: some View {
         List {
             ForEach(themes) { theme in
-                Button {
-                    editingTheme = theme
+                NavigationLink {
+                    WidgetThemeEditView(theme: theme) { updatedTheme in
+                        if let index = themes.firstIndex(where: { $0.id == updatedTheme.id }) {
+                            themes[index] = updatedTheme
+                        }
+                        save()
+                    }
                 } label: {
                     HStack(spacing: 14) {
                         thumbnail(for: theme)
                         Text(theme.name)
                             .foregroundStyle(.primary)
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
                     }
                     .padding(.vertical, 4)
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
                 .alignmentGuide(.listRowSeparatorLeading) { d in d[.leading] }
             }
             .onDelete { indexSet in

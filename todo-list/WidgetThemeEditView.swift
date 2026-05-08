@@ -14,6 +14,7 @@ struct WidgetThemeEditView: View {
     @State private var showNameError = false
     @State private var scrollToName = false
 
+    let isModal: Bool
     let onSave: (WidgetTheme) -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -27,7 +28,7 @@ struct WidgetThemeEditView: View {
         case large = "Large"
     }
 
-    init(theme: WidgetTheme, onSave: @escaping (WidgetTheme) -> Void) {
+    init(theme: WidgetTheme, isModal: Bool = false, onSave: @escaping (WidgetTheme) -> Void) {
         var resolved = theme
         if resolved.backgroundColorComponents == nil {
             resolved.backgroundColorComponents = ColorComponents.from(Color(.systemBackground))
@@ -43,49 +44,50 @@ struct WidgetThemeEditView: View {
             }
         }
         self._theme = State(initialValue: resolved)
+        self.isModal = isModal
         self.onSave = onSave
     }
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if verticalSizeClass == .compact {
-                    // 横向き: 左42%にプレビュー、右58%に設定リスト
-                    HStack(spacing: 0) {
-                        previewPanel
-                            .containerRelativeFrame(.horizontal) { w, _ in w * 0.42 }
-                            .frame(maxHeight: .infinity)
-                        settingsPanel
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    }
-                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { availableHeight = $0 }
-                } else {
-                    // 縦向き: 上にプレビュー、下に設定リスト
-                    VStack(spacing: 0) {
-                        previewPanel
-                        settingsPanel
-                    }
+        Group {
+            if verticalSizeClass == .compact {
+                // 横向き: 左42%にプレビュー、右58%に設定リスト
+                HStack(spacing: 0) {
+                    previewPanel
+                        .containerRelativeFrame(.horizontal) { w, _ in w * 0.42 }
+                        .frame(maxHeight: .infinity)
+                    settingsPanel
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { availableHeight = $0 }
+            } else {
+                // 縦向き: 上にプレビュー、下に設定リスト
+                VStack(spacing: 0) {
+                    previewPanel
+                    settingsPanel
                 }
             }
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(Color.clear, for: .navigationBar)
-            .toolbar {
+        }
+        .navigationTitle("")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Color.clear, for: .navigationBar)
+        .toolbar {
+            if isModal {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        if theme.name.trimmingCharacters(in: .whitespaces).isEmpty {
-                            showNameError = true
-                            scrollToName = true
-                        } else {
-                            onSave(theme)
-                            dismiss()
-                        }
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Save") {
+                    if theme.name.trimmingCharacters(in: .whitespaces).isEmpty {
+                        showNameError = true
+                        scrollToName = true
+                    } else {
+                        onSave(theme)
+                        dismiss()
                     }
-                    .disabled(theme.name.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
+                .disabled(theme.name.trimmingCharacters(in: .whitespaces).isEmpty)
             }
         }
     }
