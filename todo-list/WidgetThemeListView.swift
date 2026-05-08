@@ -9,6 +9,7 @@ import WidgetKit
 struct WidgetThemeListView: View {
     @State private var themes: [WidgetTheme] = WidgetThemeStore.loadAll()
     @State private var newTheme: WidgetTheme?
+    @State private var themeToDelete: WidgetTheme?
 
     private static let previewData = WidgetPreviewData()
 
@@ -43,6 +44,18 @@ struct WidgetThemeListView: View {
                 }
             }
         }
+        .alert("Delete \"\(themeToDelete?.name ?? "")\"?", isPresented: Binding(get: { themeToDelete != nil }, set: { if !$0 { themeToDelete = nil } })) {
+            Button("Delete", role: .destructive) {
+                if let theme = themeToDelete,
+                   let index = themes.firstIndex(where: { $0.id == theme.id }) {
+                    themes.remove(at: index)
+                    if themes.isEmpty { themes = [.default] }
+                    save()
+                }
+                themeToDelete = nil
+            }
+            Button("Cancel", role: .cancel) { themeToDelete = nil }
+        }
         .sheet(item: $newTheme) { theme in
             NavigationStack {
                 WidgetThemeEditView(theme: theme, isModal: true) { updatedTheme in
@@ -74,13 +87,14 @@ struct WidgetThemeListView: View {
                     .padding(.vertical, 4)
                 }
                 .alignmentGuide(.listRowSeparatorLeading) { d in d[.leading] }
-            }
-            .onDelete { indexSet in
-                themes.remove(atOffsets: indexSet)
-                if themes.isEmpty {
-                    themes = [.default]
+                .swipeActions(edge: .trailing) {
+                    Button {
+                        themeToDelete = theme
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                    .tint(.red)
                 }
-                save()
             }
         }
         .listStyle(.insetGrouped)
