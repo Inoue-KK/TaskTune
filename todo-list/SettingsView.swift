@@ -181,36 +181,46 @@ struct SettingsView: View {
     var body: some View {
         Form {
             Section("Appearance") {
-                colorPickerRow("Accent Color", color: accentColorBinding)
+                colorPickerRow("Accent Color", systemImage: "swatchpalette", color: accentColorBinding)
             }
 
             Section {
-                Toggle("Sound", isOn: $soundEnabled)
-                    .tint(Color(hex: accentColorHex) ?? .blue)
+                Toggle(isOn: $soundEnabled) {
+                    settingsLabel("Sound", systemImage: "speaker.wave.2")
+                }
+                .tint(Color(hex: accentColorHex) ?? .blue)
                 if soundEnabled {
                     NavigationLink {
                         SoundPickerView(selectedSoundRaw: $selectedSoundRaw)
                     } label: {
-                        LabeledContent("Sound Effect") {
+                        LabeledContent {
                             Text(CompletionSound(rawValue: selectedSoundRaw)?.label ?? "Bubble")
                                 .foregroundStyle(.secondary)
+                        } label: {
+                            settingsLabel("Sound Effect", systemImage: "music.quarternote.3")
                         }
                     }
                 }
-                Toggle("Haptic Feedback", isOn: $hapticEnabled)
-                    .tint(Color(hex: accentColorHex) ?? .blue)
+                Toggle(isOn: $hapticEnabled) {
+                    settingsLabel("Haptic Feedback", systemImage: "iphone.radiowaves.left.and.right")
+                }
+                .tint(Color(hex: accentColorHex) ?? .blue)
             }
 
             Section("Widget") {
-                NavigationLink("Widget Themes") {
+                NavigationLink {
                     WidgetThemeListView()
+                } label: {
+                    settingsLabel("Widget Themes", systemImage: "paintbrush.pointed")
                 }
             }
 
             Section("About") {
-                LabeledContent("Version") {
+                LabeledContent {
                     Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—")
                         .foregroundStyle(.secondary)
+                } label: {
+                    settingsLabel("Version", systemImage: "info.circle")
                 }
             }
         }
@@ -219,9 +229,21 @@ struct SettingsView: View {
     }
 
     @ViewBuilder
-    private func colorPickerRow(_ label: String, color: Binding<Color>) -> some View {
+    private func settingsLabel(_ title: String, systemImage: String) -> some View {
+        Label {
+            Text(title)
+        } icon: {
+            Image(systemName: systemImage)
+                .foregroundStyle(.primary.opacity(0.8))
+                .font(.subheadline)
+                .fontWeight(.semibold)
+        }
+    }
+
+    @ViewBuilder
+    private func colorPickerRow(_ label: String, systemImage: String, color: Binding<Color>) -> some View {
         HStack {
-            Text(label)
+            settingsLabel(label, systemImage: systemImage)
             Spacer()
             UIColorPickerButton(title: label, color: color)
                 .frame(width: 29, height: 29)
