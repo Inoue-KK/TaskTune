@@ -37,7 +37,12 @@ class NotificationManager: NSObject {
             actions: [completeAction],
             intentIdentifiers: []
         )
-        center.setNotificationCategories([category])
+        let listReminderCategory = UNNotificationCategory(
+            identifier: "LIST_REMINDER",
+            actions: [],
+            intentIdentifiers: []
+        )
+        center.setNotificationCategories([category, listReminderCategory])
     }
 
     func requestPermission() async {
@@ -71,6 +76,134 @@ class NotificationManager: NSObject {
             let id = "\(todo.notificationID)_\(index)"
             try? await center.add(UNNotificationRequest(identifier: id, content: content, trigger: trigger))
         }
+    }
+
+    func scheduleListReminder(for list: TodoList) async {
+        cancelListReminder(for: list)
+        guard list.reminderEnabled, list.reminderTime != nil else { return }
+
+        let pendingCount = list.todos.filter { !$0.isCompleted }.count
+        guard pendingCount > 0 else {
+            list.reminderLastScheduledCount = 0
+            return
+        }
+
+        let dates = upcomingListReminderDates(for: list)
+        guard !dates.isEmpty else {
+            list.reminderLastScheduledCount = 0
+            return
+        }
+
+        let center = UNUserNotificationCenter.current()
+        let usesWeekdays = list.reminderRepeatInterval == .weekly && !list.reminderWeekdays.isEmpty
+
+        for (index, date) in dates.enumerated() {
+            let content = makeListReminderContent(for: list, pendingCount: pendingCount)
+            let comps = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: date)
+            let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)
+            let id: String
+            if list.reminderRepeatInterval == nil {
+                id = "list_reminder_\(list.id)"
+            } else if usesWeekdays {
+                let weekday = Calendar.current.component(.weekday, from: date)
+                id = "list_reminder_\(list.id)_\(weekday)_\(index)"
+            } else {
+                id = "list_reminder_\(list.id)_\(index)"
+            }
+            try? await center.add(UNNotificationRequest(identifier: id, content: content, trigger: trigger))
+        }
+
+        list.reminderLastScheduledCount = dates.count
+    }
+
+    private func upcomingListReminderDates(for list: TodoList) -> [Date] {
+        guard let reminderTime = list.reminderTime else { return [] }
+        let now = Date()
+        let maxOccurrences = Self.maxScheduledOccurrences
+
+        guard let interval = list.reminderRepeatInterval else {
+            return reminderTime > now ? [reminderTime] : []
+        }
+
+        let intervalCount = max(1, list.reminderRepeatIntervalCount)
+        var limit = maxOccurrences
+        if let endCond = list.reminderRepeatEndCondition, endCond == .afterCount {
+            limit = min(maxOccurrences, max(0, list.reminderRepeatEndCount - list.reminderOccurrenceCount))
+        }
+        guard limit > 0 else { return [] }
+
+        let endDate: Date? = (list.reminderRepeatEndCondition == .onDate) ? list.reminderRepeatEndDate : nil
+        var dates: [Date] = []
+
+        if interval == .weekly && !list.reminderWeekdays.isEmpty {
+            for weekday in list.reminderWeekdays.sorted() {
+                var current = nextWeekdayOccurrence(after: now, weekdays: [weekday], time: reminderTime)
+                var count = 0
+                while count < limit {
+                    if let end = endDate, current > end { break }
+                    dates.append(current)
+                    count += 1
+                    guard let next = Calendar.current.date(byAdding: .weekOfYear, value: intervalCount, to: current) else { break }
+                    current = next
+                }
+            }
+        } else {
+            var current = reminderTime
+            if current <= now {
+                repeat {
+                    guard let next = Calendar.current.date(byAdding: interval.calendarComponent, value: intervalCount, to: current) else { break }
+                    current = next
+                } while current <= now
+            }
+            var count = 0
+            while count < limit {
+                if let end = endDate, current > end { break }
+                dates.append(current)
+                count += 1
+                guard let next = Calendar.current.date(byAdding: interval.calendarComponent, value: intervalCount, to: current) else { break }
+                current = next
+            }
+        }
+
+        return Array(dates.prefix(maxOccurrences))
+    }
+
+    func cancelListReminder(for list: TodoList) {
+        var ids = ["list_reminder_\(list.id)"]
+        for i in 0..<Self.maxScheduledOccurrences {
+            ids.append("list_reminder_\(list.id)_\(i)")
+        }
+        for weekday in 1...7 {
+            ids.append("list_reminder_\(list.id)_\(weekday)")
+            for i in 0..<Self.maxScheduledOccurrences {
+                ids.append("list_reminder_\(list.id)_\(weekday)_\(i)")
+            }
+        }
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(withIdentifiers: ids)
+    }
+
+    func rescheduleAllListReminders(lists: [TodoList]) async {
+        let pendingIDs = Set(await UNUserNotificationCenter.current().pendingNotificationRequests().map { $0.identifier })
+        for list in lists {
+            if let endCond = list.reminderRepeatEndCondition, endCond == .afterCount, list.reminderLastScheduledCount > 0 {
+                let listPrefix = "list_reminder_\(list.id)"
+                let stillPending = pendingIDs.filter { $0.hasPrefix(listPrefix) }.count
+                let fired = max(0, list.reminderLastScheduledCount - stillPending)
+                list.reminderOccurrenceCount += fired
+            }
+            await scheduleListReminder(for: list)
+        }
+    }
+
+    private func makeListReminderContent(for list: TodoList, pendingCount: Int) -> UNMutableNotificationContent {
+        let content = UNMutableNotificationContent()
+        content.title = list.title
+        content.body = "\(pendingCount) incomplete task\(pendingCount == 1 ? "" : "s")"
+        content.sound = .default
+        content.categoryIdentifier = "LIST_REMINDER"
+        content.userInfo = ["listTitle": list.title]
+        return content
     }
 
     func cancel(for todo: Todo) {

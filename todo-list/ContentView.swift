@@ -17,6 +17,7 @@ struct ContentView: View {
     @AppStorage("accentColor") private var accentColorHex = "#007AFF"
     @State private var showingAddSheet = false
     @State private var showingRenameSheet = false
+    @State private var showingReminderSheet = false
     @State private var editingTodo: Todo?
     @State private var hapticEngine: CHHapticEngine?
     @State private var addButtonPressed = false
@@ -56,10 +57,23 @@ struct ContentView: View {
                     .foregroundStyle(.primary)
                 }
             }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showingReminderSheet = true
+                } label: {
+                    Image(systemName: todoList.reminderEnabled ? "bell.fill" : "bell")
+                        .foregroundStyle(todoList.reminderEnabled ? (Color(hex: accentColorHex) ?? .blue) : .secondary)
+                }
+            }
         }
         .sheet(isPresented: $showingRenameSheet) {
             RenameListView(todoList: todoList)
                 .presentationDetents([.height(280)])
+                .presentationCornerRadius(20)
+        }
+        .sheet(isPresented: $showingReminderSheet) {
+            ListReminderView(todoList: todoList)
+                .presentationBackground(.background)
                 .presentationCornerRadius(20)
         }
         .sheet(isPresented: $showingAddSheet) {
@@ -133,7 +147,10 @@ struct ContentView: View {
                     if hapticEnabled { playHaptic() }
                 }
                 // 繰り返しTodoは現サイクルだけ抑止し、未来サイクルは維持される
-                Task { await NotificationManager.shared.schedule(for: todo) }
+                Task {
+                    await NotificationManager.shared.schedule(for: todo)
+                    await NotificationManager.shared.scheduleListReminder(for: todoList)
+                }
             }
 
             VStack(alignment: .leading, spacing: 2) {
@@ -286,6 +303,7 @@ struct ContentView: View {
             NotificationManager.shared.cancel(for: todo)
             context.delete(todo)
         }
+        Task { await NotificationManager.shared.scheduleListReminder(for: todoList) }
     }
 
     private func movePendingTodos(from source: IndexSet, to destination: Int) {

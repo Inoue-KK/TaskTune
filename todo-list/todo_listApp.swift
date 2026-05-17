@@ -151,6 +151,8 @@ struct todo_listApp: App {
             if newPhase == .active {
                 Task {
                     await advanceOverdueRepeatingTodos(in: container)
+                    let lists = (try? container.mainContext.fetch(FetchDescriptor<TodoList>())) ?? []
+                    await NotificationManager.shared.rescheduleAllListReminders(lists: lists)
                 }
             }
         }
