@@ -1,0 +1,160 @@
+/* ContentView */
+"Pending" = "未完了";
+"Completed" = "完了";
+"Overdue · %@" = "期限切れ · %@";
+"Today at %@" = "今日 %@";
+"· Missed ×%lld" = "· 未達成 ×%lld";
+"No todos yet" = "Todoがありません";
+"Tap the + button to add one" = "＋ボタンでTodoを追加できます";
+
+/* ListsView */
+"Lists" = "リスト";
+"Search lists and todos" = "リスト・Todoを検索";
+"Delete" = "削除";
+"Rename" = "名前を変更";
+"Todos" = "Todo";
+"No results" = "結果なし";
+"No lists yet" = "リストがありません";
+"Tap the + button to create one" = "＋ボタンでリストを作成できます";
+"%lld items" = "%lld件";
+"All todos in this list will also be deleted." = "このリスト内のTodoもすべて削除されます。";
+"Delete \"%@\"?" = "「%@」を削除しますか？";
+
+/* AddTodoView / EditTodoView */
+"e.g. Buy milk" = "例）牛乳を買う";
+"Notify on due date" = "期日に通知";
+"No notification will be sent if the task is already complete." = "完了済みの場合は通知されません。";
+"New Todo" = "新規Todo";
+"Edit Todo" = "Todoを編集";
+"Title" = "タイトル";
+
+/* AddListView */
+"e.g. Shopping" = "例）買い物";
+"New List" = "新規リスト";
+
+/* RenameListView */
+"List name" = "リスト名";
+"Rename List" = "リスト名を変更";
+
+/* Repeat settings (shared across views) */
+"Repeat" = "繰り返し";
+"No Repeat" = "繰り返しなし";
+"Every" = "間隔";
+"End Repeat" = "終了条件";
+"Never" = "なし";
+"After" = "回数";
+"On Date" = "日付";
+"repeat" = "回";
+"repeats" = "回";
+"day" = "日";
+"days" = "日";
+"week" = "週";
+"weeks" = "週";
+"month" = "ヶ月";
+"months" = "ヶ月";
+"year" = "年";
+"years" = "年";
+
+/* RepeatInterval display names (used in pickers and repeatDescription) */
+"Daily" = "毎日";
+"Weekly" = "毎週";
+"Monthly" = "毎月";
+"Yearly" = "毎年";
+
+/* repeatDescription format strings */
+"Every %lld %@" = "%1$lld%2$@ごと";
+"· %lld left" = "· 残り%lld回";
+"· Until %@" = "· %@まで";
+
+/* ListReminderView */
+"Notify incomplete tasks" = "未完了タスクを通知";
+"Reminder" = "リマインダー";
+"reminder" = "回";
+"reminders" = "回";
+"No reminder will be sent if all tasks are complete." = "全Todoが完了している場合は通知されません。";
+"Enable notifications in Settings to receive list reminders." = "リマインダーを受け取るには、設定から通知を有効にしてください。";
+
+/* Common buttons */
+"Add" = "追加";
+"Save" = "保存";
+"Cancel" = "キャンセル";
+
+/* Notifications alert */
+"Notifications Disabled" = "通知が無効です";
+"Open Settings" = "設定を開く";
+"Enable notifications in Settings to receive due date reminders." = "期日の通知を受け取るには、設定から通知を有効にしてください。";
+
+/* SettingsView */
+"Settings" = "設定";
+"Appearance" = "外観";
+"Accent Color" = "アクセントカラー";
+"Sound" = "サウンド";
+"Sound Effect" = "サウンドエフェクト";
+"Haptic Feedback" = "触覚フィードバック";
+"Widget" = "ウィジェット";
+"Widget Themes" = "ウィジェットテーマ";
+"About" = "バージョン情報";
+"Version" = "バージョン";
+
+/* WidgetThemeListView */
+"No themes yet" = "テーマがありません";
+"New Theme" = "新規テーマ";
+
+/* WidgetThemeEditView - picker values */
+"Compact" = "コンパクト";
+"Normal" = "標準";
+"Comfortable" = "ゆったり";
+"Leading" = "左";
+"Trailing" = "右";
+"Dotted Circle" = "点線の丸";
+"Circle" = "丸";
+"Square" = "四角";
+"Rounded Square" = "角丸四角";
+"Diamond" = "ひし形";
+"Seal" = "シール";
+"Heart" = "ハート";
+"Star" = "星";
+"Bookmark" = "ブックマーク";
+
+/* WidgetThemeEditView */
+"Theme Name" = "テーマ名";
+"Name is required." = "名前を入力してください。";
+"Enter a name" = "テーマ名を入力";
+"Colors" = "カラー";
+"Background Color" = "背景色";
+"Text Color" = "テキスト色";
+"Layout" = "レイアウト";
+"Font Size" = "フォントサイズ";
+"Row Height" = "行の高さ";
+"Checkbox Position" = "チェックボックスの位置";
+"Style" = "スタイル";
+"Display" = "表示";
+"Show Remaining Count" = "残件数を表示";
+"Show Completed Count" = "完了数を表示";
+"Show Completed (Large only)" = "完了を表示（Largeのみ）";
+"Small" = "Small";
+"Medium" = "Medium";
+"Large" = "Large";
+
+/* Sound names and descriptions (SoundPickerView) */
+"Bubble" = "バブル";
+"Boing" = "ボイン";
+"Level Up" = "レベルアップ";
+"Sparkle" = "スパークル";
+"Click" = "クリック";
+"Clack" = "クラック";
+"Fanfare" = "ファンファーレ";
+"Soap bubble pop" = "シャボン玉の音";
+"Springy bounce" = "バウンド音";
+"3-note victory" = "3音の勝利音";
+"Glittery shimmer" = "キラキラした音";
+"Mechanical click" = "機械的なクリック音";
+"Deep click" = "低めのクリック音";
+"Big celebration" = "お祝いのファンファーレ";
+
+/* NotificationManager */
+"Mark Complete" = "完了にする";
+"%lld incomplete task" = "未完了のタスクが%lld件あります";
+"%lld incomplete tasks" = "未完了のタスクが%lld件あります";
+"Due %@" = "期日：%@";
+"%@ · Due %@" = "%@ · 期日：%@";

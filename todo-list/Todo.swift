@@ -30,10 +30,10 @@ enum RepeatInterval: String, Codable, CaseIterable {
 
     func unitLabel(count: Int) -> String {
         switch self {
-        case .daily: return count == 1 ? "day" : "days"
-        case .weekly: return count == 1 ? "week" : "weeks"
-        case .monthly: return count == 1 ? "month" : "months"
-        case .yearly: return count == 1 ? "year" : "years"
+        case .daily: return NSLocalizedString(count == 1 ? "day" : "days", comment: "")
+        case .weekly: return NSLocalizedString(count == 1 ? "week" : "weeks", comment: "")
+        case .monthly: return NSLocalizedString(count == 1 ? "month" : "months", comment: "")
+        case .yearly: return NSLocalizedString(count == 1 ? "year" : "years", comment: "")
         }
     }
 }
@@ -64,19 +64,23 @@ class Todo {
             base = repeatWeekdays.sorted().map { symbols[$0 - 1] }.joined(separator: ", ")
         } else {
             let count = repeatIntervalCount
-            base = count == 1 ? interval.rawValue : "Every \(count) \(interval.unitLabel(count: count))"
+            if count == 1 {
+                base = NSLocalizedString(interval.rawValue, comment: "Repeat interval")
+            } else {
+                base = String(format: NSLocalizedString("Every %lld %@", comment: ""), count, interval.unitLabel(count: count))
+            }
         }
         if let endCond = repeatEndCondition {
             switch endCond {
             case .afterCount:
                 let remaining = max(0, repeatEndCount - repeatOccurrenceCount)
-                base += " · \(remaining) left"
+                base += String(format: NSLocalizedString("· %lld left", comment: ""), remaining)
             case .onDate:
                 if let endDate = repeatEndDate {
                     let f = DateFormatter()
                     f.dateStyle = .short
                     f.timeStyle = .none
-                    base += " · Until \(f.string(from: endDate))"
+                    base += String(format: NSLocalizedString("· Until %@", comment: ""), f.string(from: endDate))
                 }
             }
         }

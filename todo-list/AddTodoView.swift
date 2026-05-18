@@ -16,7 +16,8 @@ struct AddTodoView: View {
     @State private var title = ""
     @State private var dueDateEnabled = false
     @State private var dueDate = Calendar.current.date(byAdding: .hour, value: 1, to: Date()) ?? Date()
-    @State private var repeatInterval: RepeatInterval? = nil
+    @State private var repeatEnabled = false
+    @State private var repeatInterval: RepeatInterval = .daily
     @State private var repeatCount: Int = 1
     @State private var repeatWeekdays: [Int] = []
     @State private var repeatEndCondition: RepeatEndCondition? = nil
@@ -39,13 +40,13 @@ struct AddTodoView: View {
                     .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.primary.opacity(0.06), lineWidth: 1))
                     .focused($isFocused)
 
-                Toggle("Add Due Date", isOn: $dueDateEnabled.animation())
+                Toggle("Notify on due date", isOn: $dueDateEnabled.animation())
                     .tint(Color(hex: accentColorHex) ?? .blue)
                     .font(.body)
                     .padding(.horizontal, 4)
                     .onChange(of: dueDateEnabled) { _, enabled in
                         if !enabled {
-                            repeatInterval = nil
+                            repeatEnabled = false
                             repeatWeekdays = []
                             repeatEndCondition = nil
                         }
@@ -74,46 +75,64 @@ struct AddTodoView: View {
                     .padding(.horizontal, 4)
                     .transition(.opacity.combined(with: .move(edge: .top)))
 
-                    Picker("Repeat", selection: $repeatInterval) {
-                        Text("No Repeat").tag(Optional<RepeatInterval>.none)
-                        ForEach(RepeatInterval.allCases, id: \.self) { interval in
-                            Text(interval.rawValue).tag(Optional(interval))
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 4)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-                    .onChange(of: repeatInterval) { _, newVal in
-                        if newVal == .weekly {
-                            if repeatWeekdays.isEmpty {
-                                repeatWeekdays = [Calendar.current.component(.weekday, from: dueDate)]
-                            }
-                        } else {
-                            repeatWeekdays = []
-                        }
-                        if newVal == nil { repeatEndCondition = nil }
-                        updateDetent()
-                    }
-
-                    if repeatInterval == .weekly {
-                        weekdaySelector
-                    } else if let interval = repeatInterval {
-                        HStack {
-                            Text("Every")
-                            Spacer()
-                            NumberStepperField(value: $repeatCount, range: 1...99)
-                            Text(interval.unitLabel(count: repeatCount))
-                                .foregroundStyle(.secondary)
-                                .frame(minWidth: 44, alignment: .leading)
-                        }
+                    Toggle("Repeat", isOn: $repeatEnabled.animation())
+                        .tint(Color(hex: accentColorHex) ?? .blue)
+                        .font(.body)
                         .padding(.horizontal, 4)
                         .transition(.opacity.combined(with: .move(edge: .top)))
-                    }
+                        .onChange(of: repeatEnabled) { _, enabled in
+                            if !enabled {
+                                repeatWeekdays = []
+                                repeatEndCondition = nil
+                            }
+                            updateDetent()
+                        }
 
-                    if repeatInterval != nil {
+                    if repeatEnabled {
+                        Picker("Repeat", selection: $repeatInterval) {
+                            ForEach(RepeatInterval.allCases, id: \.self) { interval in
+                                Text(LocalizedStringKey(interval.rawValue)).tag(interval)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 4)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                        .onChange(of: repeatInterval) { _, newVal in
+                            if newVal == .weekly {
+                                if repeatWeekdays.isEmpty {
+                                    repeatWeekdays = [Calendar.current.component(.weekday, from: dueDate)]
+                                }
+                            } else {
+                                repeatWeekdays = []
+                            }
+                            updateDetent()
+                        }
+
+                        if repeatInterval == .weekly {
+                            weekdaySelector
+                        } else {
+                            HStack {
+                                Text("Every")
+                                Spacer()
+                                NumberStepperField(value: $repeatCount, range: 1...99)
+                                Text(repeatInterval.unitLabel(count: repeatCount))
+                                    .foregroundStyle(.secondary)
+                                    .frame(minWidth: 44, alignment: .leading)
+                            }
+                            .padding(.horizontal, 4)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
+                        }
+
                         endConditionPicker
                     }
+
+                    Text("No notification will be sent if the task is already complete.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 4)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                 }
 
                 let trimmed = title.trimmingCharacters(in: .whitespaces)
@@ -122,7 +141,7 @@ struct AddTodoView: View {
                     guard !trimmed.isEmpty else { return }
                     let effectiveDueDate: Date? = {
                         guard dueDateEnabled else { return nil }
-                        if repeatInterval == .weekly && !repeatWeekdays.isEmpty {
+                        if repeatEnabled && repeatInterval == .weekly && !repeatWeekdays.isEmpty {
                             return nextWeekdayOccurrence(after: Date(), weekdays: repeatWeekdays, time: dueDate)
                         }
                         return dueDate
@@ -131,12 +150,12 @@ struct AddTodoView: View {
                         title: trimmed,
                         sortOrder: todoList.todos.count,
                         dueDate: effectiveDueDate,
-                        repeatInterval: dueDateEnabled ? repeatInterval : nil,
-                        repeatIntervalCount: (dueDateEnabled && repeatInterval != nil && repeatInterval != .weekly) ? repeatCount : 1,
-                        repeatWeekdays: (dueDateEnabled && repeatInterval == .weekly) ? repeatWeekdays : [],
-                        repeatEndCondition: (dueDateEnabled && repeatInterval != nil) ? repeatEndCondition : nil,
+                        repeatInterval: (dueDateEnabled && repeatEnabled) ? repeatInterval : nil,
+                        repeatIntervalCount: (dueDateEnabled && repeatEnabled && repeatInterval != .weekly) ? repeatCount : 1,
+                        repeatWeekdays: (dueDateEnabled && repeatEnabled && repeatInterval == .weekly) ? repeatWeekdays : [],
+                        repeatEndCondition: (dueDateEnabled && repeatEnabled) ? repeatEndCondition : nil,
                         repeatEndCount: repeatEndCount,
-                        repeatEndDate: (dueDateEnabled && repeatInterval != nil && repeatEndCondition == .onDate) ? repeatEndDate : nil
+                        repeatEndDate: (dueDateEnabled && repeatEnabled && repeatEndCondition == .onDate) ? repeatEndDate : nil
                     )
                     context.insert(todo)
                     todo.todoList = todoList
@@ -194,22 +213,25 @@ struct AddTodoView: View {
 
     private var endConditionPicker: some View {
         VStack(spacing: 12) {
-            Picker("Ends", selection: $repeatEndCondition) {
-                Text("Never").tag(Optional<RepeatEndCondition>.none)
-                Text("After").tag(Optional(RepeatEndCondition.afterCount))
-                Text("On Date").tag(Optional(RepeatEndCondition.onDate))
+            HStack {
+                Text("End Repeat")
+                Spacer()
+                Picker("", selection: $repeatEndCondition) {
+                    Text("Never").tag(Optional<RepeatEndCondition>.none)
+                    Text("After").tag(Optional(RepeatEndCondition.afterCount))
+                    Text("On Date").tag(Optional(RepeatEndCondition.onDate))
+                }
+                .pickerStyle(.menu)
+                .onChange(of: repeatEndCondition) { _, _ in updateDetent() }
             }
-            .pickerStyle(.menu)
-            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 4)
-            .onChange(of: repeatEndCondition) { _, _ in updateDetent() }
 
             if repeatEndCondition == .afterCount {
                 HStack {
                     Text("After")
                     Spacer()
                     NumberStepperField(value: $repeatEndCount, range: 1...999)
-                    Text(repeatEndCount == 1 ? "repeat" : "repeats")
+                    Text(LocalizedStringKey(repeatEndCount == 1 ? "repeat" : "repeats"))
                         .foregroundStyle(.secondary)
                         .frame(minWidth: 55, alignment: .leading)
                 }
@@ -236,7 +258,7 @@ struct AddTodoView: View {
         let h: CGFloat
         if !dueDateEnabled {
             h = 340
-        } else if repeatInterval != nil && repeatEndCondition != nil {
+        } else if repeatEnabled && repeatEndCondition != nil {
             h = 700
         } else {
             h = 600

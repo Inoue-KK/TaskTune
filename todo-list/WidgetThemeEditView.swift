@@ -107,7 +107,7 @@ struct WidgetThemeEditView: View {
                             previewSize = size
                         }
                     } label: {
-                        Text(size.rawValue)
+                        Text(LocalizedStringKey(size.rawValue))
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(previewSize == size ? .white : Color(.secondaryLabel))
                             .padding(.horizontal, 18)
@@ -184,17 +184,17 @@ struct WidgetThemeEditView: View {
                     .padding(.vertical, 4)
                     Picker("Row Height", selection: $theme.rowHeight) {
                         ForEach(WidgetRowHeightValue.allCases, id: \.self) {
-                            Text($0.displayName).tag($0)
+                            Text(LocalizedStringKey($0.displayName)).tag($0)
                         }
                     }
                     Picker("Checkbox Position", selection: $theme.checkboxPosition) {
                         ForEach(WidgetCheckboxPositionValue.allCases, id: \.self) {
-                            Text($0.displayName).tag($0)
+                            Text(LocalizedStringKey($0.displayName)).tag($0)
                         }
                     }
                     Picker("Style", selection: $theme.checkboxStyle) {
                         ForEach(WidgetCheckboxStyleValue.allCases, id: \.self) { style in
-                            Label(style.displayName, systemImage: style.pendingIcon).tag(style)
+                            Label(LocalizedStringKey(style.displayName), systemImage: style.pendingIcon).tag(style)
                         }
                     }
                 }
@@ -283,9 +283,9 @@ struct WidgetThemeEditView: View {
     @ViewBuilder
     private func colorPickerRow(_ label: String, selection: Binding<Color>) -> some View {
         HStack {
-            Text(label)
+            Text(LocalizedStringKey(label))
             Spacer()
-            UIColorPickerButton(title: label, color: selection)
+            UIColorPickerButton(title: NSLocalizedString(label, comment: ""), color: selection)
                 .frame(width: 29, height: 29)
                 .clipShape(Circle())
                 .overlay(Circle().strokeBorder(Color(.separator), lineWidth: 0.5))

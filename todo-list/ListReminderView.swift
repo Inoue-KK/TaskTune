@@ -14,7 +14,8 @@ struct ListReminderView: View {
 
     @State private var reminderEnabled: Bool
     @State private var reminderTime: Date
-    @State private var repeatInterval: RepeatInterval?
+    @State private var repeatEnabled: Bool
+    @State private var repeatInterval: RepeatInterval
     @State private var repeatIntervalCount: Int
     @State private var repeatWeekdays: [Int]
     @State private var repeatEndCondition: RepeatEndCondition?
@@ -28,7 +29,8 @@ struct ListReminderView: View {
         self.todoList = todoList
         _reminderEnabled = State(initialValue: todoList.reminderEnabled)
         _reminderTime = State(initialValue: todoList.reminderTime ?? Self.defaultTime())
-        _repeatInterval = State(initialValue: todoList.reminderRepeatInterval)
+        _repeatEnabled = State(initialValue: todoList.reminderRepeatInterval != nil)
+        _repeatInterval = State(initialValue: todoList.reminderRepeatInterval ?? .daily)
         _repeatIntervalCount = State(initialValue: max(1, todoList.reminderRepeatIntervalCount))
         _repeatWeekdays = State(initialValue: todoList.reminderWeekdays.isEmpty && todoList.reminderRepeatInterval == .weekly
             ? [Calendar.current.component(.weekday, from: Date())]
@@ -42,13 +44,13 @@ struct ListReminderView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    Toggle("Remind me", isOn: $reminderEnabled.animation())
+                    Toggle("Notify incomplete tasks", isOn: $reminderEnabled.animation())
                         .tint(Color(hex: accentColorHex) ?? .blue)
                         .font(.body)
                         .padding(.horizontal, 4)
                         .onChange(of: reminderEnabled) { _, enabled in
                             if !enabled {
-                                repeatInterval = nil
+                                repeatEnabled = false
                                 repeatWeekdays = []
                                 repeatEndCondition = nil
                             }
@@ -77,45 +79,56 @@ struct ListReminderView: View {
                         .padding(.horizontal, 4)
                         .transition(.opacity.combined(with: .move(edge: .top)))
 
-                        Picker("Repeat", selection: $repeatInterval) {
-                            Text("No Repeat").tag(Optional<RepeatInterval>.none)
-                            ForEach(RepeatInterval.allCases, id: \.self) { interval in
-                                Text(interval.rawValue).tag(Optional(interval))
-                            }
-                        }
-                        .pickerStyle(.menu)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 4)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
-                        .onChange(of: repeatInterval) { _, newVal in
-                            if newVal == .weekly {
-                                if repeatWeekdays.isEmpty {
-                                    repeatWeekdays = [Calendar.current.component(.weekday, from: reminderTime)]
-                                }
-                            } else {
-                                repeatWeekdays = []
-                            }
-                            if newVal == nil { repeatEndCondition = nil }
-                            updateDetent()
-                        }
-
-                        if repeatInterval == .weekly {
-                            WeekdaySelectorView(selectedWeekdays: $repeatWeekdays)
-                                .transition(.opacity.combined(with: .move(edge: .top)))
-                        } else if let interval = repeatInterval {
-                            HStack {
-                                Text("Every")
-                                Spacer()
-                                NumberStepperField(value: $repeatIntervalCount, range: 1...99)
-                                Text(interval.unitLabel(count: repeatIntervalCount))
-                                    .foregroundStyle(.secondary)
-                                    .frame(minWidth: 44, alignment: .leading)
-                            }
+                        Toggle("Repeat", isOn: $repeatEnabled.animation())
+                            .tint(Color(hex: accentColorHex) ?? .blue)
+                            .font(.body)
                             .padding(.horizontal, 4)
                             .transition(.opacity.combined(with: .move(edge: .top)))
-                        }
+                            .onChange(of: repeatEnabled) { _, enabled in
+                                if !enabled {
+                                    repeatWeekdays = []
+                                    repeatEndCondition = nil
+                                }
+                                updateDetent()
+                            }
 
-                        if repeatInterval != nil {
+                        if repeatEnabled {
+                            Picker("Repeat", selection: $repeatInterval) {
+                                ForEach(RepeatInterval.allCases, id: \.self) { interval in
+                                    Text(LocalizedStringKey(interval.rawValue)).tag(interval)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 4)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
+                            .onChange(of: repeatInterval) { _, newVal in
+                                if newVal == .weekly {
+                                    if repeatWeekdays.isEmpty {
+                                        repeatWeekdays = [Calendar.current.component(.weekday, from: reminderTime)]
+                                    }
+                                } else {
+                                    repeatWeekdays = []
+                                }
+                                updateDetent()
+                            }
+
+                            if repeatInterval == .weekly {
+                                WeekdaySelectorView(selectedWeekdays: $repeatWeekdays)
+                                    .transition(.opacity.combined(with: .move(edge: .top)))
+                            } else {
+                                HStack {
+                                    Text("Every")
+                                    Spacer()
+                                    NumberStepperField(value: $repeatIntervalCount, range: 1...99)
+                                    Text(repeatInterval.unitLabel(count: repeatIntervalCount))
+                                        .foregroundStyle(.secondary)
+                                        .frame(minWidth: 44, alignment: .leading)
+                                }
+                                .padding(.horizontal, 4)
+                                .transition(.opacity.combined(with: .move(edge: .top)))
+                            }
+
                             endConditionPicker
                         }
                     }
@@ -176,22 +189,25 @@ struct ListReminderView: View {
 
     private var endConditionPicker: some View {
         VStack(spacing: 12) {
-            Picker("Ends", selection: $repeatEndCondition) {
-                Text("Never").tag(Optional<RepeatEndCondition>.none)
-                Text("After").tag(Optional(RepeatEndCondition.afterCount))
-                Text("On Date").tag(Optional(RepeatEndCondition.onDate))
+            HStack {
+                Text("End Repeat")
+                Spacer()
+                Picker("", selection: $repeatEndCondition) {
+                    Text("Never").tag(Optional<RepeatEndCondition>.none)
+                    Text("After").tag(Optional(RepeatEndCondition.afterCount))
+                    Text("On Date").tag(Optional(RepeatEndCondition.onDate))
+                }
+                .pickerStyle(.menu)
+                .onChange(of: repeatEndCondition) { _, _ in updateDetent() }
             }
-            .pickerStyle(.menu)
-            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 4)
-            .onChange(of: repeatEndCondition) { _, _ in updateDetent() }
 
             if repeatEndCondition == .afterCount {
                 HStack {
                     Text("After")
                     Spacer()
                     NumberStepperField(value: $repeatEndCount, range: 1...999)
-                    Text(repeatEndCount == 1 ? "reminder" : "reminders")
+                    Text(LocalizedStringKey(repeatEndCount == 1 ? "reminder" : "reminders"))
                         .foregroundStyle(.secondary)
                         .frame(minWidth: 70, alignment: .leading)
                 }
@@ -217,12 +233,12 @@ struct ListReminderView: View {
     private func save() {
         todoList.reminderEnabled = reminderEnabled
         todoList.reminderTime = reminderEnabled ? reminderTime : nil
-        todoList.reminderRepeatInterval = reminderEnabled ? repeatInterval : nil
+        todoList.reminderRepeatInterval = (reminderEnabled && repeatEnabled) ? repeatInterval : nil
         todoList.reminderRepeatIntervalCount = repeatIntervalCount
-        todoList.reminderWeekdays = (reminderEnabled && repeatInterval == .weekly) ? repeatWeekdays : []
-        todoList.reminderRepeatEndCondition = (reminderEnabled && repeatInterval != nil) ? repeatEndCondition : nil
+        todoList.reminderWeekdays = (reminderEnabled && repeatEnabled && repeatInterval == .weekly) ? repeatWeekdays : []
+        todoList.reminderRepeatEndCondition = (reminderEnabled && repeatEnabled) ? repeatEndCondition : nil
         todoList.reminderRepeatEndCount = repeatEndCount
-        todoList.reminderRepeatEndDate = (reminderEnabled && repeatInterval != nil && repeatEndCondition == .onDate) ? repeatEndDate : nil
+        todoList.reminderRepeatEndDate = (reminderEnabled && repeatEnabled && repeatEndCondition == .onDate) ? repeatEndDate : nil
         todoList.reminderOccurrenceCount = 0
         todoList.reminderLastScheduledCount = 0
         Task { await NotificationManager.shared.scheduleListReminder(for: todoList) }
@@ -233,7 +249,7 @@ struct ListReminderView: View {
         let h: CGFloat
         if !reminderEnabled {
             h = 340
-        } else if repeatInterval != nil && repeatEndCondition != nil {
+        } else if repeatEnabled && repeatEndCondition != nil {
             h = 700
         } else {
             h = 600

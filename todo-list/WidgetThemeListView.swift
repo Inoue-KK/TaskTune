@@ -131,11 +131,12 @@ struct WidgetThemeListView: View {
     // MARK: - Default Name
 
     private func defaultThemeName() -> String {
+        let base = NSLocalizedString("New Theme", comment: "")
         let existing = Set(themes.map(\.name))
-        if !existing.contains("New Theme") { return "New Theme" }
+        if !existing.contains(base) { return base }
         var i = 2
-        while existing.contains("New Theme \(i)") { i += 1 }
-        return "New Theme \(i)"
+        while existing.contains("\(base) \(i)") { i += 1 }
+        return "\(base) \(i)"
     }
 
     // MARK: - Save

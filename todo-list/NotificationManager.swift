@@ -29,7 +29,7 @@ class NotificationManager: NSObject {
 
         let completeAction = UNNotificationAction(
             identifier: "COMPLETE_TODO",
-            title: "Mark Complete",
+            title: NSLocalizedString("Mark Complete", comment: ""),
             options: []
         )
         let category = UNNotificationCategory(
@@ -199,7 +199,8 @@ class NotificationManager: NSObject {
     private func makeListReminderContent(for list: TodoList, pendingCount: Int) -> UNMutableNotificationContent {
         let content = UNMutableNotificationContent()
         content.title = list.title
-        content.body = "\(pendingCount) incomplete task\(pendingCount == 1 ? "" : "s")"
+        let bodyKey = pendingCount == 1 ? "%lld incomplete task" : "%lld incomplete tasks"
+        content.body = String(format: NSLocalizedString(bodyKey, comment: ""), pendingCount)
         content.sound = .default
         content.categoryIdentifier = "LIST_REMINDER"
         content.userInfo = ["listTitle": list.title]
@@ -222,9 +223,9 @@ class NotificationManager: NSObject {
         let content = UNMutableNotificationContent()
         content.title = todo.title
         if let listTitle = todo.todoList?.title, !listTitle.isEmpty {
-            content.body = listTitle + " · Due " + formattedDate(dueDate)
+            content.body = String(format: NSLocalizedString("%@ · Due %@", comment: ""), listTitle, formattedDate(dueDate))
         } else {
-            content.body = "Due " + formattedDate(dueDate)
+            content.body = String(format: NSLocalizedString("Due %@", comment: ""), formattedDate(dueDate))
         }
         content.sound = .default
         content.categoryIdentifier = "TODO_DUE"

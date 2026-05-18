@@ -1,0 +1,160 @@
+/* ContentView */
+"Pending" = "Pending";
+"Completed" = "Completed";
+"Overdue · %@" = "Overdue · %@";
+"Today at %@" = "Today at %@";
+"· Missed ×%lld" = "· Missed ×%lld";
+"No todos yet" = "No todos yet";
+"Tap the + button to add one" = "Tap the + button to add one";
+
+/* ListsView */
+"Lists" = "Lists";
+"Search lists and todos" = "Search lists and todos";
+"Delete" = "Delete";
+"Rename" = "Rename";
+"Todos" = "Todos";
+"No results" = "No results";
+"No lists yet" = "No lists yet";
+"Tap the + button to create one" = "Tap the + button to create one";
+"%lld items" = "%lld items";
+"All todos in this list will also be deleted." = "All todos in this list will also be deleted.";
+"Delete \"%@\"?" = "Delete \"%@\"?";
+
+/* AddTodoView / EditTodoView */
+"e.g. Buy milk" = "e.g. Buy milk";
+"Notify on due date" = "Notify on due date";
+"No notification will be sent if the task is already complete." = "No notification will be sent if the task is already complete.";
+"New Todo" = "New Todo";
+"Edit Todo" = "Edit Todo";
+"Title" = "Title";
+
+/* AddListView */
+"e.g. Shopping" = "e.g. Shopping";
+"New List" = "New List";
+
+/* RenameListView */
+"List name" = "List name";
+"Rename List" = "Rename List";
+
+/* Repeat settings (shared across views) */
+"Repeat" = "Repeat";
+"No Repeat" = "No Repeat";
+"Every" = "Every";
+"End Repeat" = "End Repeat";
+"Never" = "Never";
+"After" = "After";
+"On Date" = "On Date";
+"repeat" = "repeat";
+"repeats" = "repeats";
+"day" = "day";
+"days" = "days";
+"week" = "week";
+"weeks" = "weeks";
+"month" = "month";
+"months" = "months";
+"year" = "year";
+"years" = "years";
+
+/* RepeatInterval display names (used in pickers and repeatDescription) */
+"Daily" = "Daily";
+"Weekly" = "Weekly";
+"Monthly" = "Monthly";
+"Yearly" = "Yearly";
+
+/* repeatDescription format strings */
+"Every %lld %@" = "Every %lld %@";
+"· %lld left" = "· %lld left";
+"· Until %@" = "· Until %@";
+
+/* ListReminderView */
+"Notify incomplete tasks" = "Notify incomplete tasks";
+"Reminder" = "Reminder";
+"reminder" = "reminder";
+"reminders" = "reminders";
+"No reminder will be sent if all tasks are complete." = "No reminder will be sent if all tasks are complete.";
+"Enable notifications in Settings to receive list reminders." = "Enable notifications in Settings to receive list reminders.";
+
+/* Common buttons */
+"Add" = "Add";
+"Save" = "Save";
+"Cancel" = "Cancel";
+
+/* Notifications alert */
+"Notifications Disabled" = "Notifications Disabled";
+"Open Settings" = "Open Settings";
+"Enable notifications in Settings to receive due date reminders." = "Enable notifications in Settings to receive due date reminders.";
+
+/* SettingsView */
+"Settings" = "Settings";
+"Appearance" = "Appearance";
+"Accent Color" = "Accent Color";
+"Sound" = "Sound";
+"Sound Effect" = "Sound Effect";
+"Haptic Feedback" = "Haptic Feedback";
+"Widget" = "Widget";
+"Widget Themes" = "Widget Themes";
+"About" = "About";
+"Version" = "Version";
+
+/* WidgetThemeListView */
+"No themes yet" = "No themes yet";
+"New Theme" = "New Theme";
+
+/* WidgetThemeEditView - picker values */
+"Compact" = "Compact";
+"Normal" = "Normal";
+"Comfortable" = "Comfortable";
+"Leading" = "Leading";
+"Trailing" = "Trailing";
+"Dotted Circle" = "Dotted Circle";
+"Circle" = "Circle";
+"Square" = "Square";
+"Rounded Square" = "Rounded Square";
+"Diamond" = "Diamond";
+"Seal" = "Seal";
+"Heart" = "Heart";
+"Star" = "Star";
+"Bookmark" = "Bookmark";
+
+/* WidgetThemeEditView */
+"Theme Name" = "Theme Name";
+"Name is required." = "Name is required.";
+"Enter a name" = "Enter a name";
+"Colors" = "Colors";
+"Background Color" = "Background Color";
+"Text Color" = "Text Color";
+"Layout" = "Layout";
+"Font Size" = "Font Size";
+"Row Height" = "Row Height";
+"Checkbox Position" = "Checkbox Position";
+"Style" = "Style";
+"Display" = "Display";
+"Show Remaining Count" = "Show Remaining Count";
+"Show Completed Count" = "Show Completed Count";
+"Show Completed (Large only)" = "Show Completed (Large only)";
+"Small" = "Small";
+"Medium" = "Medium";
+"Large" = "Large";
+
+/* Sound names and descriptions (SoundPickerView) */
+"Bubble" = "Bubble";
+"Boing" = "Boing";
+"Level Up" = "Level Up";
+"Sparkle" = "Sparkle";
+"Click" = "Click";
+"Clack" = "Clack";
+"Fanfare" = "Fanfare";
+"Soap bubble pop" = "Soap bubble pop";
+"Springy bounce" = "Springy bounce";
+"3-note victory" = "3-note victory";
+"Glittery shimmer" = "Glittery shimmer";
+"Mechanical click" = "Mechanical click";
+"Deep click" = "Deep click";
+"Big celebration" = "Big celebration";
+
+/* NotificationManager */
+"Mark Complete" = "Mark Complete";
+"%lld incomplete task" = "%lld incomplete task";
+"%lld incomplete tasks" = "%lld incomplete tasks";
+"Due %@" = "Due %@";
+"%@ · Due %@" = "%@ · Due %@";

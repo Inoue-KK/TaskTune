@@ -208,9 +208,9 @@ struct ContentView: View {
 
     private func dueDateLabel(_ date: Date) -> String {
         if date < Date() {
-            return "Overdue · \(Self.overdueDateFormatter.string(from: date))"
+            return String(format: NSLocalizedString("Overdue · %@", comment: ""), Self.overdueDateFormatter.string(from: date))
         } else if Calendar.current.isDateInToday(date) {
-            return "Today at \(Self.todayTimeFormatter.string(from: date))"
+            return String(format: NSLocalizedString("Today at %@", comment: ""), Self.todayTimeFormatter.string(from: date))
         } else {
             return Self.futureDateFormatter.string(from: date)
         }

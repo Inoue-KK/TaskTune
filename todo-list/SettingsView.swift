@@ -194,7 +194,7 @@ struct SettingsView: View {
                         SoundPickerView(selectedSoundRaw: $selectedSoundRaw)
                     } label: {
                         LabeledContent {
-                            Text(CompletionSound(rawValue: selectedSoundRaw)?.label ?? "Bubble")
+                            Text(LocalizedStringKey(CompletionSound(rawValue: selectedSoundRaw)?.label ?? "Bubble"))
                                 .foregroundStyle(.secondary)
                         } label: {
                             settingsLabel("Sound Effect", systemImage: "music.quarternote.3")
@@ -231,7 +231,7 @@ struct SettingsView: View {
     @ViewBuilder
     private func settingsLabel(_ title: String, systemImage: String) -> some View {
         Label {
-            Text(title)
+            Text(LocalizedStringKey(title))
         } icon: {
             Image(systemName: systemImage)
                 .foregroundStyle(.primary.opacity(0.8))
@@ -245,7 +245,7 @@ struct SettingsView: View {
         HStack {
             settingsLabel(label, systemImage: systemImage)
             Spacer()
-            UIColorPickerButton(title: label, color: color)
+            UIColorPickerButton(title: NSLocalizedString(label, comment: ""), color: color)
                 .frame(width: 29, height: 29)
                 .clipShape(Circle())
                 .overlay(Circle().strokeBorder(Color(.separator), lineWidth: 0.5))
@@ -265,9 +265,9 @@ struct SoundPickerView: View {
             } label: {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(sound.label)
+                        Text(LocalizedStringKey(sound.label))
                             .foregroundStyle(.primary)
-                        Text(sound.description)
+                        Text(LocalizedStringKey(sound.description))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
