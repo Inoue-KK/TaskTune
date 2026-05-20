@@ -336,6 +336,7 @@ struct WidgetHeaderView: View {
     let entry: TodoWidgetEntry
 
     @Environment(\.widgetRenderingMode) private var renderingMode
+    @Environment(\.widgetFamily) private var widgetFamily
 
     var body: some View {
         HStack {
@@ -344,20 +345,51 @@ struct WidgetHeaderView: View {
                 .foregroundStyle(renderingMode == .accented ? Color.primary : entry.theme.textColor)
                 .lineLimit(1)
             Spacer()
-            HStack(spacing: 6) {
-                if entry.theme.showRemainingCount {
-                    Text("\(entry.totalPending) left")
-                        .font(.caption)
-                        .foregroundStyle(renderingMode == .accented ? Color.secondary : entry.theme.secondaryTextColor)
-                }
-                if entry.theme.showCompletedCount {
-                    Text("\(entry.totalCompleted) done")
-                        .font(.caption)
-                        .foregroundStyle(renderingMode == .accented ? Color(.tertiaryLabel) : entry.theme.tertiaryTextColor)
-                }
+            if widgetFamily == .systemSmall {
+                compactCountView
+            } else {
+                fullCountView
             }
         }
         .padding(.bottom, 1)
+    }
+
+    @ViewBuilder
+    private var compactCountView: some View {
+        HStack(spacing: 4) {
+            if entry.theme.showRemainingCount {
+                HStack(spacing: 2) {
+                    Image(systemName: entry.theme.checkboxStyle.pendingIcon)
+                    Text("\(entry.totalPending)")
+                }
+                .font(.caption2)
+                .foregroundStyle(renderingMode == .accented ? Color.secondary : entry.theme.secondaryTextColor)
+            }
+            if entry.theme.showCompletedCount {
+                HStack(spacing: 2) {
+                    Image(systemName: entry.theme.checkboxStyle.completedIcon)
+                    Text("\(entry.totalCompleted)")
+                }
+                .font(.caption2)
+                .foregroundStyle(renderingMode == .accented ? Color(.tertiaryLabel) : entry.theme.tertiaryTextColor)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var fullCountView: some View {
+        HStack(spacing: 6) {
+            if entry.theme.showRemainingCount {
+                Text("\(entry.totalPending) left")
+                    .font(.caption)
+                    .foregroundStyle(renderingMode == .accented ? Color.secondary : entry.theme.secondaryTextColor)
+            }
+            if entry.theme.showCompletedCount {
+                Text("\(entry.totalCompleted) done")
+                    .font(.caption)
+                    .foregroundStyle(renderingMode == .accented ? Color(.tertiaryLabel) : entry.theme.tertiaryTextColor)
+            }
+        }
     }
 }
 
@@ -388,7 +420,7 @@ struct SmallWidgetView: View {
             Divider().padding(.bottom, 1)
             pendingList
         }
-        .padding(.horizontal, 8)
+        .padding(.horizontal, 12)
         .padding(.vertical, 12)
         .containerBackground(for: .widget) {
             entry.theme.backgroundColor
@@ -635,5 +667,6 @@ struct TodoListWidget: Widget {
         .configurationDisplayName("Todo List")
         .description("Customize the list and theme.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
+        .contentMarginsDisabled()
     }
 }

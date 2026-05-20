@@ -92,6 +92,7 @@ private struct PreviewRowView: View {
 private struct PreviewHeaderView: View {
     let data: WidgetPreviewData
     let theme: WidgetTheme
+    var isSmall: Bool = false
 
     var body: some View {
         HStack {
@@ -100,20 +101,51 @@ private struct PreviewHeaderView: View {
                 .foregroundStyle(theme.textColor)
                 .lineLimit(1)
             Spacer()
-            HStack(spacing: 6) {
-                if theme.showRemainingCount {
-                    Text("\(data.totalPending) left")
-                        .font(.caption)
-                        .foregroundStyle(theme.secondaryTextColor)
-                }
-                if theme.showCompletedCount {
-                    Text("\(data.totalCompleted) done")
-                        .font(.caption)
-                        .foregroundStyle(theme.tertiaryTextColor)
-                }
+            if isSmall {
+                compactCountView
+            } else {
+                fullCountView
             }
         }
         .padding(.bottom, 1)
+    }
+
+    @ViewBuilder
+    private var compactCountView: some View {
+        HStack(spacing: 4) {
+            if theme.showRemainingCount {
+                HStack(spacing: 2) {
+                    Image(systemName: theme.checkboxStyle.pendingIcon)
+                    Text("\(data.totalPending)")
+                }
+                .font(.caption2)
+                .foregroundStyle(theme.secondaryTextColor)
+            }
+            if theme.showCompletedCount {
+                HStack(spacing: 2) {
+                    Image(systemName: theme.checkboxStyle.completedIcon)
+                    Text("\(data.totalCompleted)")
+                }
+                .font(.caption2)
+                .foregroundStyle(theme.tertiaryTextColor)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var fullCountView: some View {
+        HStack(spacing: 6) {
+            if theme.showRemainingCount {
+                Text("\(data.totalPending) left")
+                    .font(.caption)
+                    .foregroundStyle(theme.secondaryTextColor)
+            }
+            if theme.showCompletedCount {
+                Text("\(data.totalCompleted) done")
+                    .font(.caption)
+                    .foregroundStyle(theme.tertiaryTextColor)
+            }
+        }
     }
 }
 
@@ -129,7 +161,7 @@ struct SmallWidgetPreview: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            PreviewHeaderView(data: data, theme: theme)
+            PreviewHeaderView(data: data, theme: theme, isSmall: true)
             Divider().padding(.bottom, 1)
             pendingList
         }
