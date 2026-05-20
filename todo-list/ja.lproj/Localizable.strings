@@ -152,6 +152,32 @@
 "Deep click" = "低めのクリック音";
 "Big celebration" = "お祝いのファンファーレ";
 
+/* WidgetPreviewViews - header counts (must match widget strings) */
+"%lld left" = "残り%lld件";
+"%lld done" = "%lld件完了";
+"All done!" = "全て完了！";
+"+ %lld more" = "他%lld件";
+
+/* WidgetPreviewViews - sample data */
+"My List" = "マイリスト";
+"Buy groceries" = "食料品を買う";
+"Call dentist" = "歯医者に電話";
+"Read book" = "本を読む";
+"Exercise" = "運動する";
+"Reply to emails" = "メールに返信";
+"Clean the desk" = "机を片付ける";
+"Plan weekend trip" = "週末の旅行を計画";
+"Fix kitchen light" = "台所の電球を交換";
+"Water the plants" = "植物に水やり";
+"Schedule haircut" = "散髪の予約";
+"Renew subscription" = "サブスクを更新";
+"Backup photos" = "写真をバックアップ";
+"Wake up" = "起きる";
+"Make coffee" = "コーヒーを淹れる";
+"Morning run" = "朝のランニング";
+"Take vitamins" = "ビタミンを飲む";
+"Check calendar" = "カレンダーを確認";
+
 /* NotificationManager */
 "Mark Complete" = "完了にする";
 "%lld incomplete task" = "未完了のタスクが%lld件あります";

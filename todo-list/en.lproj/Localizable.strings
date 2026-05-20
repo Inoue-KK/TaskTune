@@ -152,6 +152,32 @@
 "Deep click" = "Deep click";
 "Big celebration" = "Big celebration";
 
+/* WidgetPreviewViews - header counts (must match widget strings) */
+"%lld left" = "%lld left";
+"%lld done" = "%lld done";
+"All done!" = "All done!";
+"+ %lld more" = "+ %lld more";
+
+/* WidgetPreviewViews - sample data */
+"My List" = "My List";
+"Buy groceries" = "Buy groceries";
+"Call dentist" = "Call dentist";
+"Read book" = "Read book";
+"Exercise" = "Exercise";
+"Reply to emails" = "Reply to emails";
+"Clean the desk" = "Clean the desk";
+"Plan weekend trip" = "Plan weekend trip";
+"Fix kitchen light" = "Fix kitchen light";
+"Water the plants" = "Water the plants";
+"Schedule haircut" = "Schedule haircut";
+"Renew subscription" = "Renew subscription";
+"Backup photos" = "Backup photos";
+"Wake up" = "Wake up";
+"Make coffee" = "Make coffee";
+"Morning run" = "Morning run";
+"Take vitamins" = "Take vitamins";
+"Check calendar" = "Check calendar";
+
 /* NotificationManager */
 "Mark Complete" = "Mark Complete";
 "%lld incomplete task" = "%lld incomplete task";

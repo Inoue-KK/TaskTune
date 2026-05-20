@@ -31,15 +31,27 @@ private enum WidgetPreviewSize {
 // MARK: - Preview Data
 
 struct WidgetPreviewData {
-    var listTitle: String = "My List"
+    var listTitle: String = NSLocalizedString("My List", comment: "")
     var pendingTodos: [String] = [
-        "Buy groceries", "Call dentist", "Read book", "Exercise",
-        "Reply to emails", "Clean the desk", "Plan weekend trip",
-        "Fix kitchen light", "Water the plants", "Schedule haircut",
-        "Renew subscription", "Backup photos"
+        NSLocalizedString("Buy groceries", comment: ""),
+        NSLocalizedString("Call dentist", comment: ""),
+        NSLocalizedString("Read book", comment: ""),
+        NSLocalizedString("Exercise", comment: ""),
+        NSLocalizedString("Reply to emails", comment: ""),
+        NSLocalizedString("Clean the desk", comment: ""),
+        NSLocalizedString("Plan weekend trip", comment: ""),
+        NSLocalizedString("Fix kitchen light", comment: ""),
+        NSLocalizedString("Water the plants", comment: ""),
+        NSLocalizedString("Schedule haircut", comment: ""),
+        NSLocalizedString("Renew subscription", comment: ""),
+        NSLocalizedString("Backup photos", comment: ""),
     ]
     var completedTodos: [String] = [
-        "Wake up", "Make coffee", "Morning run", "Take vitamins", "Check calendar"
+        NSLocalizedString("Wake up", comment: ""),
+        NSLocalizedString("Make coffee", comment: ""),
+        NSLocalizedString("Morning run", comment: ""),
+        NSLocalizedString("Take vitamins", comment: ""),
+        NSLocalizedString("Check calendar", comment: ""),
     ]
 
     var totalPending: Int { pendingTodos.count }
