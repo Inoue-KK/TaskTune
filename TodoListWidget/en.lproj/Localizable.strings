@@ -1,0 +1,38 @@
+/* AppIntent - CompleteTodoIntent */
+"Complete Todo" = "Complete Todo";
+"List Title" = "List Title";
+"Todo Title" = "Todo Title";
+
+/* AppIntent - WidgetInteractionMode */
+"Interaction Mode" = "Interaction Mode";
+"Tap to Complete" = "Tap to Complete";
+"Read Only" = "Read Only";
+
+/* AppIntent - SelectListIntent */
+"Widget Settings" = "Widget Settings";
+"Select a list and theme." = "Select a list and theme.";
+"List" = "List";
+"Theme" = "Theme";
+
+/* Widget display name */
+"Todo List" = "Todo List";
+"Customize the list and theme." = "Customize the list and theme.";
+
+/* WidgetHeaderView */
+"%lld left" = "%lld left";
+"%lld done" = "%lld done";
+
+/* All-done message */
+"All done!" = "All done!";
+
+/* Overflow indicator */
+"+ %lld more" = "+ %lld more";
+
+/* Large widget - no completed tasks */
+"No completed tasks" = "No completed tasks";
+
+/* Setup instructions (isSetup state) */
+"① Long press the widget" = "① Long press the widget";
+"② Tap \"Edit Widget\"" = "② Tap \"Edit Widget\"";
+"③ Set list & theme" = "③ Set list, theme & mode";
+"Themes can be created in Settings" = "Themes can be created in Settings";

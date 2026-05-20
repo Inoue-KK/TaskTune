@@ -213,8 +213,10 @@ struct TodoWidgetProvider: AppIntentTimelineProvider {
                 date: date,
                 listTitle: "Todo List",
                 pendingTodos: [
-                    "Hold & tap Edit Widget",
-                    "to set list & theme",
+                    "① Long press the widget",
+                    "② Tap \"Edit Widget\"",
+                    "③ Set list & theme",
+                    "Themes can be created in Settings",
                 ],
                 completedTodos: [],
                 theme: setupTheme,
@@ -404,10 +406,13 @@ struct SmallWidgetView: View {
 
     private var setupMessageView: some View {
         VStack(alignment: .leading, spacing: 4) {
-            ForEach(entry.pendingTodos, id: \.self) { line in
-                Text(line)
-                    .font(.caption)
-                    .foregroundStyle(renderingMode == .accented ? Color.primary : entry.theme.textColor)
+            ForEach(Array(entry.pendingTodos.enumerated()), id: \.offset) { index, line in
+                let isHint = index == entry.pendingTodos.count - 1
+                Text(LocalizedStringKey(line))
+                    .font(isHint ? .caption2 : .caption)
+                    .foregroundStyle(isHint
+                        ? (renderingMode == .accented ? Color.secondary : entry.theme.secondaryTextColor)
+                        : (renderingMode == .accented ? Color.primary : entry.theme.textColor))
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -463,6 +468,28 @@ struct MediumWidgetView: View {
 
     @ViewBuilder
     private var pendingList: some View {
+        if entry.isSetup {
+            setupMessageView
+        } else {
+            normalPendingList
+        }
+    }
+
+    private var setupMessageView: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ForEach(Array(entry.pendingTodos.enumerated()), id: \.offset) { index, line in
+                let isHint = index == entry.pendingTodos.count - 1
+                Text(LocalizedStringKey(line))
+                    .font(isHint ? .caption : .subheadline)
+                    .foregroundStyle(isHint ? entry.theme.secondaryTextColor : entry.theme.textColor)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    @ViewBuilder
+    private var normalPendingList: some View {
         let toShow = Array(entry.pendingTodos.prefix(maxItemCount))
         let remaining = entry.totalPending - toShow.count
 
@@ -497,8 +524,12 @@ struct LargeWidgetView: View {
         VStack(alignment: .leading, spacing: 0) {
             WidgetHeaderView(entry: entry)
             Divider().padding(.bottom, 8)
-            GeometryReader { proxy in
-                todoList(availableHeight: proxy.size.height)
+            if entry.isSetup {
+                setupMessageView
+            } else {
+                GeometryReader { proxy in
+                    normalTodoList(availableHeight: proxy.size.height)
+                }
             }
         }
         .padding()
@@ -507,8 +538,21 @@ struct LargeWidgetView: View {
         }
     }
 
+    private var setupMessageView: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ForEach(Array(entry.pendingTodos.enumerated()), id: \.offset) { index, line in
+                let isHint = index == entry.pendingTodos.count - 1
+                Text(LocalizedStringKey(line))
+                    .font(isHint ? .caption : .subheadline)
+                    .foregroundStyle(isHint ? entry.theme.secondaryTextColor : entry.theme.textColor)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
     @ViewBuilder
-    private func todoList(availableHeight: CGFloat) -> some View {
+    private func normalTodoList(availableHeight: CGFloat) -> some View {
         let showCompletedSection = entry.theme.showCompleted && !entry.completedTodos.isEmpty
         let rowH = entry.theme.estimatedRowHeight
         let pendingHeight = entry.theme.showCompleted ? availableHeight * 0.6 : availableHeight

@@ -1,0 +1,38 @@
+/* AppIntent - CompleteTodoIntent */
+"Complete Todo" = "Todoを完了にする";
+"List Title" = "リスト名";
+"Todo Title" = "Todo名";
+
+/* AppIntent - WidgetInteractionMode */
+"Interaction Mode" = "操作モード";
+"Tap to Complete" = "タップで完了";
+"Read Only" = "読み取り専用";
+
+/* AppIntent - SelectListIntent */
+"Widget Settings" = "ウィジェット設定";
+"Select a list and theme." = "リストとテーマを選択してください。";
+"List" = "リスト";
+"Theme" = "テーマ";
+
+/* Widget display name */
+"Todo List" = "Todoリスト";
+"Customize the list and theme." = "リストとテーマをカスタマイズ";
+
+/* WidgetHeaderView */
+"%lld left" = "残り%lld件";
+"%lld done" = "%lld件完了";
+
+/* All-done message */
+"All done!" = "全て完了！";
+
+/* Overflow indicator */
+"+ %lld more" = "他%lld件";
+
+/* Large widget - no completed tasks */
+"No completed tasks" = "完了済みなし";
+
+/* Setup instructions (isSetup state) */
+"① Long press the widget" = "① 長押しする";
+"② Tap \"Edit Widget\"" = "②「ウィジェットを編集」を選択";
+"③ Set list & theme" = "③ リスト・テーマ等を設定";
+"Themes can be created in Settings" = "テーマは設定画面から作成できます";
