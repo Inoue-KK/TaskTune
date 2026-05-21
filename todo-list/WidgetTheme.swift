@@ -263,7 +263,7 @@ struct WidgetTheme: Codable, Identifiable, Sendable {
 // MARK: - Theme Store
 
 enum WidgetThemeStore {
-    private static let appGroupID = "group.com.inoue-kk.todo-list"
+    private static let appGroupID = "group.com.inoue-kk.tasktune"
     private static let key = "widgetThemes"
 
     private static var defaults: UserDefaults? {

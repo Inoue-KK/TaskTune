@@ -75,7 +75,7 @@ struct ListsView: View {
         .onAppear { lists = savedLists }
         .onChange(of: savedLists) { _, newValue in lists = newValue }
         .onOpenURL { url in
-            guard url.scheme == "todolist",
+            guard url.scheme == "tasktune",
                   url.host == "list",
                   let encoded = url.pathComponents.last,
                   let title = encoded.removingPercentEncoding,

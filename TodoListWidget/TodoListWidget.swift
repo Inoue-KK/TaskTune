@@ -12,18 +12,18 @@ import AppIntents
 
 // MARK: - App Group
 
-private let appGroupID = "group.com.inoue-kk.todo-list"
+private let appGroupID = "group.com.inoue-kk.tasktune"
 private let schemaVersion = 3
 private let schemaVersionKey = "swiftDataSchemaVersion"
 
 private func makeModelContainer() throws -> ModelContainer? {
     guard let groupURL = FileManager.default
         .containerURL(forSecurityApplicationGroupIdentifier: appGroupID) else { return nil }
-    let storeURL = groupURL.appendingPathComponent("todo-list.store")
+    let storeURL = groupURL.appendingPathComponent("tasktune.store")
 
     func deleteStore() {
         for suffix in ["", "-shm", "-wal"] {
-            let url = groupURL.appendingPathComponent("todo-list.store\(suffix)")
+            let url = groupURL.appendingPathComponent("tasktune.store\(suffix)")
             try? FileManager.default.removeItem(at: url)
         }
     }
@@ -637,7 +637,7 @@ struct TodoWidgetEntryView: View {
 
     private var widgetURL: URL {
         let encoded = entry.listTitle.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
-        return URL(string: "todolist://list/\(encoded)")!
+        return URL(string: "tasktune://list/\(encoded)")!
     }
 
     var body: some View {
@@ -664,7 +664,7 @@ struct TodoListWidget: Widget {
         AppIntentConfiguration(kind: kind, intent: SelectListIntent.self, provider: TodoWidgetProvider()) { entry in
             TodoWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("Todo List")
+        .configurationDisplayName("TaskTune")
         .description("Customize the list and theme.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
         .contentMarginsDisabled()

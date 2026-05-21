@@ -11,7 +11,7 @@ import WidgetKit
 
 // ⚠️ Replace with the same App Group ID used in the widget target
 // e.g. "group.com.yourname.todo-list"
-private let appGroupID = "group.com.inoue-kk.todo-list"
+private let appGroupID = "group.com.inoue-kk.tasktune"
 
 // Bump this when the SwiftData schema changes to force store recreation on old devices
 private let schemaVersion = 3
@@ -98,11 +98,11 @@ struct todo_listApp: App {
         guard let groupURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupID) else {
             fatalError("App Group '\(appGroupID)' is not configured. Check Signing & Capabilities.")
         }
-        let storeURL = groupURL.appendingPathComponent("todo-list.store")
+        let storeURL = groupURL.appendingPathComponent("tasktune.store")
 
         func deleteStore() {
             for suffix in ["", "-shm", "-wal"] {
-                let url = groupURL.appendingPathComponent("todo-list.store\(suffix)")
+                let url = groupURL.appendingPathComponent("tasktune.store\(suffix)")
                 try? FileManager.default.removeItem(at: url)
             }
         }

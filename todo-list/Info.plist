@@ -9,7 +9,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>todolist</string>
+				<string>tasktune</string>
 			</array>
 		</dict>
 	</array>
