@@ -399,7 +399,7 @@
 				CODE_SIGN_ENTITLEMENTS = "todo-list/todo-list.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 4RVUQDPSZ6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "todo-list/Info.plist";
@@ -414,7 +414,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.inouekyoka.tasktune";
+				PRODUCT_BUNDLE_IDENTIFIER = com.inouekyoka.tasktune;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -434,7 +434,7 @@
 				CODE_SIGN_ENTITLEMENTS = "todo-list/todo-list.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 4RVUQDPSZ6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "todo-list/Info.plist";
@@ -449,7 +449,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.inouekyoka.tasktune";
+				PRODUCT_BUNDLE_IDENTIFIER = com.inouekyoka.tasktune;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -469,7 +469,7 @@
 				CODE_SIGN_ENTITLEMENTS = TodoListWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 4RVUQDPSZ6;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TodoListWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = TodoListWidget;
@@ -480,7 +480,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.inouekyoka.tasktune.TodoListWidget";
+				PRODUCT_BUNDLE_IDENTIFIER = com.inouekyoka.tasktune.TodoListWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -500,7 +500,7 @@
 				CODE_SIGN_ENTITLEMENTS = TodoListWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 4RVUQDPSZ6;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TodoListWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = TodoListWidget;
@@ -511,7 +511,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.inouekyoka.tasktune.TodoListWidget";
+				PRODUCT_BUNDLE_IDENTIFIER = com.inouekyoka.tasktune.TodoListWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
