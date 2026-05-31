@@ -78,21 +78,21 @@ private class SoundPlayer {
 
     private func notes(for sound: CompletionSound) -> [Note] {
         switch sound {
-        case .bubble: return [Note(freqStart: 300,  freqEnd: 1000, duration: 0.10, decay: 20)]
+        case .bubble: return [Note(freqStart: 300,  freqEnd: 1000, duration: 0.15, decay: 35)]
         case .glint: return [
             Note(freqStart: 784,  freqEnd: 784,  duration: 0.09, decay: 22, gap: 0.03),
-            Note(freqStart: 1319, freqEnd: 1319, duration: 0.30, decay: 8, volume: 0.3)
+            Note(freqStart: 1319, freqEnd: 1319, duration: 0.60, decay: 8, volume: 0.3)
         ]
         case .levelUp: return [
             Note(freqStart: 523,  freqEnd: 523,  duration: 0.08, decay: 25, gap: 0.02),
             Note(freqStart: 659,  freqEnd: 659,  duration: 0.08, decay: 25, gap: 0.02),
-            Note(freqStart: 784,  freqEnd: 784,  duration: 0.20, decay: 10, volume: 0.6)
+            Note(freqStart: 784,  freqEnd: 784,  duration: 0.50, decay: 10, volume: 0.6)
         ]
         case .sparkle: return [
             Note(freqStart: 1568, freqEnd: 1568, duration: 0.05, decay: 40, gap: 0.02),
             Note(freqStart: 1760, freqEnd: 1760, duration: 0.05, decay: 40, gap: 0.02),
             Note(freqStart: 1976, freqEnd: 1976, duration: 0.05, decay: 40, gap: 0.02),
-            Note(freqStart: 2093, freqEnd: 2093, duration: 0.12, decay: 20)
+            Note(freqStart: 2093, freqEnd: 2093, duration: 0.25, decay: 20)
         ]
         case .click: return [
             Note(freqStart: 1200, freqEnd: 1200, duration: 0.03, decay: 180, gap: 0.1),
@@ -107,7 +107,7 @@ private class SoundPlayer {
             Note(freqStart: 659,  freqEnd: 659,  duration: 0.07, decay: 20, gap: 0.01),
             Note(freqStart: 784,  freqEnd: 784,  duration: 0.07, decay: 20, gap: 0.01),
             Note(freqStart: 1047, freqEnd: 1047, duration: 0.07, decay: 20, gap: 0.01),
-            Note(freqStart: 1319, freqEnd: 1319, duration: 0.30, decay: 7)
+            Note(freqStart: 1319, freqEnd: 1319, duration: 0.70, decay: 7)
         ]
         }
     }
