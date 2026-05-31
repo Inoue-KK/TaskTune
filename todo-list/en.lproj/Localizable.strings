@@ -137,15 +137,15 @@
 "Large" = "Large";
 
 /* Sound names and descriptions (SoundPickerView) */
+"Glint" = "Glint";
 "Bubble" = "Bubble";
-"Boing" = "Boing";
 "Level Up" = "Level Up";
 "Sparkle" = "Sparkle";
 "Click" = "Click";
 "Clack" = "Clack";
 "Fanfare" = "Fanfare";
 "Soap bubble pop" = "Soap bubble pop";
-"Springy bounce" = "Springy bounce";
+"Bright confirmation" = "Bright confirmation";
 "3-note victory" = "3-note victory";
 "Glittery shimmer" = "Glittery shimmer";
 "Mechanical click" = "Mechanical click";

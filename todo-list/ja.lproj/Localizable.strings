@@ -137,15 +137,15 @@
 "Large" = "Large";
 
 /* Sound names and descriptions (SoundPickerView) */
+"Glint" = "チェック";
 "Bubble" = "バブル";
-"Boing" = "ボイン";
 "Level Up" = "レベルアップ";
 "Sparkle" = "スパークル";
 "Click" = "クリック";
 "Clack" = "クラック";
 "Fanfare" = "ファンファーレ";
 "Soap bubble pop" = "シャボン玉の音";
-"Springy bounce" = "バウンド音";
+"Bright confirmation" = "明るい確認音";
 "3-note victory" = "3音の勝利音";
 "Glittery shimmer" = "キラキラした音";
 "Mechanical click" = "機械的なクリック音";

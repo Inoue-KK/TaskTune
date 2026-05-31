@@ -10,12 +10,12 @@ import AVFoundation
 import WidgetKit
 
 enum CompletionSound: String, CaseIterable {
-    case bubble, boing, levelUp, sparkle, click, clack, fanfare
+    case glint, bubble, levelUp, sparkle, click, clack, fanfare
 
     var label: String {
         switch self {
         case .bubble:  return "Bubble"
-        case .boing:   return "Boing"
+        case .glint:   return "Glint"
         case .levelUp: return "Level Up"
         case .sparkle: return "Sparkle"
         case .click:   return "Click"
@@ -27,7 +27,7 @@ enum CompletionSound: String, CaseIterable {
     var description: String {
         switch self {
         case .bubble:  return "Soap bubble pop"
-        case .boing:   return "Springy bounce"
+        case .glint:   return "Bright confirmation"
         case .levelUp: return "3-note victory"
         case .sparkle: return "Glittery shimmer"
         case .click:   return "Mechanical click"
@@ -79,7 +79,7 @@ private class SoundPlayer {
     private func notes(for sound: CompletionSound) -> [Note] {
         switch sound {
         case .bubble: return [Note(freqStart: 300,  freqEnd: 1000, duration: 0.10, decay: 20)]
-        case .boing: return [
+        case .glint: return [
             Note(freqStart: 784,  freqEnd: 784,  duration: 0.09, decay: 22, gap: 0.03),
             Note(freqStart: 1319, freqEnd: 1319, duration: 0.30, decay: 8, volume: 0.3)
         ]
@@ -168,7 +168,7 @@ extension Color {
 struct SettingsView: View {
     @AppStorage("soundEnabled") private var soundEnabled = true
     @AppStorage("hapticEnabled") private var hapticEnabled = true
-    @AppStorage("selectedSound") private var selectedSoundRaw = CompletionSound.bubble.rawValue
+    @AppStorage("selectedSound") private var selectedSoundRaw = CompletionSound.glint.rawValue
     @AppStorage("accentColor") private var accentColorHex = "#007AFF"
 
     private var accentColorBinding: Binding<Color> {
