@@ -144,9 +144,3 @@ Open `todo-list.xcodeproj` in Xcode, set your Team and Bundle Identifier under S
 ウィジェットとプッシュ通知は実機が必要です。
 
 Open `todo-list.xcodeproj` and run on a simulator or device. Widgets and push notifications require a physical device.
-
----
-
-## License
-
-MIT
