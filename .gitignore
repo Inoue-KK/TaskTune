@@ -9,3 +9,7 @@ DerivedData/
 
 # macOS
 .DS_Store
+**/.DS_Store
+
+# Backup files
+*_backup.*
