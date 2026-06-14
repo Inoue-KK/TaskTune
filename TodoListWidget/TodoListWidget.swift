@@ -12,7 +12,7 @@ import AppIntents
 
 // MARK: - App Group
 
-private let appGroupID = "group.com.inoue-kk.tasktune"
+private let appGroupID = "group.com.yourname.tasktune"
 private let schemaVersion = 3
 private let schemaVersionKey = "swiftDataSchemaVersion"
 

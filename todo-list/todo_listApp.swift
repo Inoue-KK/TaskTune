@@ -11,7 +11,7 @@ import WidgetKit
 
 // ⚠️ Replace with the same App Group ID used in the widget target
 // e.g. "group.com.yourname.todo-list"
-private let appGroupID = "group.com.inoue-kk.tasktune"
+private let appGroupID = "group.com.yourname.tasktune"
 
 // Bump this when the SwiftData schema changes to force store recreation on old devices
 private let schemaVersion = 3
